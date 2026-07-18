@@ -12,7 +12,7 @@ const adminClient = () => createClient(
 )
 
 export async function POST(request: NextRequest) {
-  const { full_name, email, password, token } = await request.json()
+  const { full_name, email, phone, password, token } = await request.json()
 
   if (!full_name?.trim() || !email?.trim() || !password) {
     return NextResponse.json({ error: 'Name, email and password are required.' }, { status: 400 })
@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
     first_name: full_name.trim().split(' ')[0],
     last_name: full_name.trim().split(' ').slice(1).join(' ') || full_name.trim(),
     email: email.toLowerCase().trim(),
+    phone: phone?.trim() || null,
     has_portal_access: true,
   }).select().single()
 

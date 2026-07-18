@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { Shield, Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff } from 'lucide-react'
 
 export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
@@ -9,11 +9,9 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <div className="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center mb-4">
-            <Shield className="w-7 h-7 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-white">Compliance Hub</h1>
-          <p className="text-navy-300 text-sm mt-1">Sign in to your account</p>
+          <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
+            alt="Fintec Group" style={{ height: '64px', width: 'auto' }} className="mb-4" />
+          <p className="text-navy-300 text-sm mt-1">Client Portal</p>
         </div>
 
         <div className="bg-white rounded-2xl shadow-2xl p-8">
@@ -43,7 +41,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-navy-400 text-xs mt-6">
-          © {new Date().getFullYear()} Fintec Group. All rights reserved.
+          © 2026 Fintec Group (Pty) Ltd · SAIT 60630773 · SARS PR-0101146
         </p>
       </div>
     </div>

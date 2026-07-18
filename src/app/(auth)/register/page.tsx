@@ -22,7 +22,7 @@ function RegisterForm() {
   const tier = searchParams.get('tier')
   const amount = searchParams.get('amount')
 
-  const [form, setForm] = useState({ full_name: '', email: '', password: '', confirm: '' })
+  const [form, setForm] = useState({ full_name: '', email: '', phone: '', password: '', confirm: '' })
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -43,6 +43,7 @@ function RegisterForm() {
       body: JSON.stringify({
         full_name: form.full_name,
         email: form.email,
+        phone: form.phone,
         password: form.password,
         token,
       }),
@@ -68,7 +69,7 @@ function RegisterForm() {
         {/* Brand */}
         <div className="flex flex-col items-center mb-8">
           <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
-            alt="Fintec Group" className="h-14 w-auto mb-4" />
+            alt="Fintec Group" style={{ height: '64px', width: 'auto' }} className="mb-4" />
           <h1 className="text-2xl font-bold text-white">Create your account</h1>
           <p className="text-navy-300 text-sm mt-1">Fintec Group Client Portal</p>
         </div>
@@ -110,6 +111,11 @@ function RegisterForm() {
                 className="input" placeholder="you@email.com" autoComplete="email" />
             </div>
             <div>
+              <label className="label">Phone number</label>
+              <input type="tel" value={form.phone} onChange={set('phone')}
+                className="input" placeholder="071 234 5678" autoComplete="tel" />
+            </div>
+            <div>
               <label className="label">Password</label>
               <div className="relative">
                 <input type={showPw ? 'text' : 'password'} required value={form.password}
@@ -138,12 +144,14 @@ function RegisterForm() {
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create account & go to portal'}
             </button>
 
-            <p className="text-center text-slate-400 text-xs leading-relaxed">
+            <p className="text-center text-xs text-slate-400 mt-4">
               By creating an account you agree to our{' '}
-              <a href="https://fintecgroup.co.za/terms" className="text-navy-600 hover:underline">Terms of Use</a>
+              <a href="https://fintecgroup.co.za/terms"
+                 className="text-navy-600 hover:underline">Terms of Use</a>
               {' '}and{' '}
-              <a href="https://fintecgroup.co.za/privacy-policy" className="text-navy-600 hover:underline">Privacy Policy</a>.
-              Your information is processed in accordance with POPIA.
+              <a href="https://fintecgroup.co.za/privacy-policy"
+                 className="text-navy-600 hover:underline">Privacy Policy</a>.
+              {' '}Your information is handled in accordance with POPIA.
             </p>
           </form>
 
@@ -154,7 +162,7 @@ function RegisterForm() {
         </div>
 
         <p className="text-center text-navy-400 text-xs mt-6">
-          © 2025 Fintec Group (Pty) Ltd · SAIT 60630773 · SARS PR-0101146
+          © 2026 Fintec Group (Pty) Ltd · SAIT 60630773 · SARS PR-0101146
         </p>
       </div>
     </div>
