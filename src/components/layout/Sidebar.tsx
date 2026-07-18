@@ -23,14 +23,11 @@ export default function Sidebar({ tenantName = 'Compliance Hub' }: { tenantName?
 
   return (
     <aside className={clsx('flex flex-col h-screen bg-navy-700 border-r border-navy-800 transition-all duration-200 shrink-0', collapsed ? 'w-16' : 'w-60')}>
-      <div className="flex items-center justify-between px-4 py-4 border-b border-navy-800">
+      <div className="flex items-center justify-between px-4 py-4 border-b border-navy-800 bg-[#f8f6f1]">
         {!collapsed && (
-          <div className="bg-white rounded-lg px-3 py-2 min-w-0">
-            <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
-              alt="Fintec Group" className="h-6 w-auto" />
-          </div>
+          <img src="/logo.png" alt="Fintec Group" className="h-8 w-auto" />
         )}
-        <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-lg text-navy-300 hover:bg-navy-600 hover:text-white transition-colors ml-auto">
+        <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-lg text-navy-500 hover:bg-black/5 transition-colors ml-auto">
           {collapsed ? <Menu className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
         </button>
       </div>

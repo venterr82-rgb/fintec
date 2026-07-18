@@ -15,12 +15,9 @@ export default function ClientNav({ tenantName = 'Compliance Hub', primaryColor 
   const pathname = usePathname()
   return (
     <aside className="w-56 flex flex-col h-screen border-r border-slate-200 bg-white shrink-0">
-      <div className="px-4 py-5 border-b border-slate-100" style={{ background: primaryColor }}>
-        <div className="bg-white rounded-lg px-3 py-2 inline-block">
-          <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
-            alt="Fintec Group" className="h-6 w-auto" />
-        </div>
-        {userName && <p className="text-white/60 text-xs mt-2 truncate">{userName}</p>}
+      <div className="px-4 py-5 border-b border-slate-100 bg-[#f8f6f1]">
+        <img src="/logo.png" alt="Fintec Group" className="h-8 w-auto" />
+        {userName && <p className="text-slate-500 text-xs mt-2 truncate">{userName}</p>}
       </div>
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {navItems.map(({ href, label, icon: Icon }) => {
