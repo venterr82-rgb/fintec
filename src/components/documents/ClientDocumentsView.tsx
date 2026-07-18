@@ -15,7 +15,7 @@ export default function ClientDocumentsView({ documents }: { documents: any[] })
   const supabase = createClient()
 
   async function download(doc: any) {
-    const { data } = await supabase.storage.from('documents').createSignedUrl(doc.file_path, 3600)
+    const { data } = await supabase.storage.from('Documents').createSignedUrl(doc.file_path, 3600)
     if (data?.signedUrl) window.open(data.signedUrl, '_blank')
   }
 

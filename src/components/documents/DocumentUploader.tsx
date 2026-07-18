@@ -36,7 +36,7 @@ export default function DocumentUploader({ companies, defaultCompanyId }: { comp
     const ext = file.name.split('.').pop()
     const filePath = `${tenantId}/${form.company_id}/${form.folder}/${Date.now()}_${file.name}`
 
-    const { error: storageErr } = await supabase.storage.from('documents').upload(filePath, file)
+    const { error: storageErr } = await supabase.storage.from('Documents').upload(filePath, file)
     if (storageErr) { setError(storageErr.message); setLoading(false); return }
 
     await supabase.from('documents').insert({

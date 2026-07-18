@@ -8,7 +8,7 @@ export default function DocumentDownload({ filePath, fileName }: { filePath: str
   async function handleDownload() {
     setLoading(true)
     const supabase = createClient()
-    const { data } = await supabase.storage.from('documents').createSignedUrl(filePath, 3600)
+    const { data } = await supabase.storage.from('Documents').createSignedUrl(filePath, 3600)
     if (data?.signedUrl) window.open(data.signedUrl, '_blank')
     setLoading(false)
   }

@@ -1,12 +1,12 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, FolderOpen, Calendar, Upload, LogOut } from 'lucide-react'
+import { LayoutDashboard, FolderOpen, Calendar, Upload, LogOut } from 'lucide-react'
 import clsx from 'clsx'
 import { siteConfig } from '@/lib/config/site'
 
 const navItems = [
-  { href: '/my-company', label: 'My Company', icon: Building2 },
+  { href: '/my-company', label: 'Dashboard', icon: LayoutDashboard },
   { href: '/my-documents', label: 'My Documents', icon: FolderOpen },
   { href: '/my-compliance', label: 'Compliance', icon: Calendar },
   { href: '/upload', label: 'Upload File', icon: Upload },

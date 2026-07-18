@@ -25,13 +25,14 @@ export async function POST(request: NextRequest) {
   const { data: docRow } = await supabase.from('tax_documents').select('tenant_id, person_id, tax_year').eq('id', docId).single()
   const filePath = `tax/${docRow?.tenant_id}/${docRow?.person_id}/${docRow?.tax_year}/${Date.now()}_${file.name}`
 
-  const { error: storageErr } = await supabase.storage.from('documents').upload(filePath, file)
+  const { error: storageErr } = await supabase.storage.from('Documents').upload(filePath, file)
   if (storageErr) return NextResponse.json({ error: storageErr.message }, { status: 400 })
 
-  await supabase.from('tax_documents').update({
+  const { error: updateErr } = await supabase.from('tax_documents').update({
     file_path: filePath, file_name: file.name, file_size: file.size,
     status: 'uploaded', uploaded_by: session.user.id, uploaded_at: new Date().toISOString(),
   }).eq('id', docId)
+  if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 400 })
 
   return NextResponse.json({ ok: true })
 }
