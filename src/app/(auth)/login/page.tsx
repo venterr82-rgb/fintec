@@ -9,8 +9,10 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
-            alt="Fintec Group" style={{ height: '64px', width: 'auto' }} className="mb-4" />
+          <div className="bg-[#f8f6f1] rounded-2xl px-6 py-4 mb-4 shadow-lg">
+            <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
+              alt="Fintec Group" style={{ height: '64px', width: 'auto' }} />
+          </div>
           <p className="text-navy-300 text-sm mt-1">Client Portal</p>
         </div>
 

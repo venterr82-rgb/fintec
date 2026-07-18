@@ -68,8 +68,10 @@ function RegisterForm() {
       <div className="w-full max-w-md">
         {/* Brand */}
         <div className="flex flex-col items-center mb-8">
-          <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
-            alt="Fintec Group" style={{ height: '64px', width: 'auto' }} className="mb-4" />
+          <div className="bg-[#f8f6f1] rounded-2xl px-6 py-4 mb-4 shadow-lg">
+            <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
+              alt="Fintec Group" style={{ height: '64px', width: 'auto' }} />
+          </div>
           <h1 className="text-2xl font-bold text-white">Create your account</h1>
           <p className="text-navy-300 text-sm mt-1">Fintec Group Client Portal</p>
         </div>
