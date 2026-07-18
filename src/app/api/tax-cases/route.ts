@@ -28,7 +28,10 @@ export async function POST(request: NextRequest) {
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
   // Generate document checklist
-  await supabase.rpc('generate_tax_documents', { p_case_id: data.id })
+  const { error: rpcError } = await supabase.rpc('generate_tax_documents', { p_case_id: data.id })
+  if (rpcError) {
+    console.error('generate_tax_documents RPC failed:', rpcError)
+  }
 
   return NextResponse.json({ data })
 }
