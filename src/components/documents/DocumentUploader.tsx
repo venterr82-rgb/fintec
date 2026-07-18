@@ -43,7 +43,7 @@ export default function DocumentUploader({ companies, defaultCompanyId }: { comp
       tenant_id: tenantId, company_id: form.company_id, name: form.name,
       document_type: form.document_type, folder: form.folder, description: form.description,
       file_path: filePath, file_name: file.name, file_size: file.size, file_type: ext,
-      uploaded_by: user!.id, visibility: form.visibility,
+      uploaded_by: session!.user.id, visibility: form.visibility,
       issue_date: form.issue_date || null, tax_year: form.tax_year || null,
     })
     router.push('/documents'); router.refresh()
