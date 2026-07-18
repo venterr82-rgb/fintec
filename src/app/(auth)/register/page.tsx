@@ -3,11 +3,19 @@
 // Registration email links to: /register?token={yoco_payment_id}
 
 'use client'
-import { useState, useEffect } from 'react'
+import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Shield, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
 
 export default function RegisterPage() {
+  return (
+    <Suspense>
+      <RegisterForm />
+    </Suspense>
+  )
+}
+
+function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
