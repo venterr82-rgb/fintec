@@ -1,9 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Building2, FolderOpen, Calendar, Upload, LogOut, Shield } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { Building2, FolderOpen, Calendar, Upload, LogOut } from 'lucide-react'
 import clsx from 'clsx'
 
 const navItems = [
@@ -15,15 +13,14 @@ const navItems = [
 
 export default function ClientNav({ tenantName = 'Compliance Hub', primaryColor = '#1e3a5f', userName }: { tenantName?: string; primaryColor?: string; userName?: string }) {
   const pathname = usePathname()
-  const router = useRouter()
-  async function logout() {
-    const supabase = createClient(); await supabase.auth.signOut(); router.push('/login')
-  }
   return (
     <aside className="w-56 flex flex-col h-screen border-r border-slate-200 bg-white shrink-0">
       <div className="px-4 py-5 border-b border-slate-100" style={{ background: primaryColor }}>
         <div className="flex items-center gap-2">
-          <Shield className="w-5 h-5 text-white" />
+          <div className="bg-white rounded-md px-1.5 py-1 shrink-0">
+            <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
+              alt="Fintec Group" className="h-5 w-auto" />
+          </div>
           <span className="text-white font-semibold text-sm">{tenantName}</span>
         </div>
         {userName && <p className="text-white/60 text-xs mt-1 truncate">{userName}</p>}
@@ -40,9 +37,11 @@ export default function ClientNav({ tenantName = 'Compliance Hub', primaryColor 
         })}
       </nav>
       <div className="p-3 border-t border-slate-100">
-        <button onClick={logout} className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-500 hover:bg-slate-50">
-          <LogOut className="w-4 h-4" />Sign out
-        </button>
+        <form method="POST" action="/auth/logout-action">
+          <button type="submit" className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-slate-500 hover:bg-slate-50">
+            <LogOut className="w-4 h-4" />Sign out
+          </button>
+        </form>
       </div>
     </aside>
   )

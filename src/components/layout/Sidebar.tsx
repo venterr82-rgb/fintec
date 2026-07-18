@@ -1,9 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, Building2, Users, Calendar, FolderOpen, CheckSquare, Upload, Settings, LogOut, ChevronLeft, Menu, Shield, FileText } from 'lucide-react'
-import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { LayoutDashboard, Building2, Users, Calendar, FolderOpen, CheckSquare, Upload, Settings, LogOut, ChevronLeft, Menu, FileText } from 'lucide-react'
 import { useState } from 'react'
 import clsx from 'clsx'
 
@@ -21,22 +19,16 @@ const navItems = [
 
 export default function Sidebar({ tenantName = 'Compliance Hub' }: { tenantName?: string }) {
   const pathname = usePathname()
-  const router = useRouter()
   const [collapsed, setCollapsed] = useState(false)
-
-  async function handleLogout() {
-    const supabase = createClient()
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
 
   return (
     <aside className={clsx('flex flex-col h-screen bg-navy-700 border-r border-navy-800 transition-all duration-200 shrink-0', collapsed ? 'w-16' : 'w-60')}>
       <div className="flex items-center justify-between px-4 py-4 border-b border-navy-800">
         {!collapsed && (
           <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
-              <Shield className="w-4 h-4 text-white" />
+            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0 p-1">
+              <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
+                alt="Fintec Group" className="h-full w-full object-contain" />
             </div>
             <span className="text-white font-semibold text-sm truncate">{tenantName}</span>
           </div>
@@ -60,10 +52,12 @@ export default function Sidebar({ tenantName = 'Compliance Hub' }: { tenantName?
         })}
       </nav>
       <div className="px-2 py-3 border-t border-navy-800">
-        <button onClick={handleLogout} className={clsx('w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-navy-300 hover:bg-navy-600 hover:text-red-300 transition-colors', collapsed && 'justify-center')}>
-          <LogOut className="w-4 h-4 shrink-0" />
-          {!collapsed && <span>Sign out</span>}
-        </button>
+        <form method="POST" action="/auth/logout-action">
+          <button type="submit" className={clsx('w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-navy-300 hover:bg-navy-600 hover:text-red-300 transition-colors', collapsed && 'justify-center')}>
+            <LogOut className="w-4 h-4 shrink-0" />
+            {!collapsed && <span>Sign out</span>}
+          </button>
+        </form>
       </div>
     </aside>
   )
