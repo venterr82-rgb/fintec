@@ -1,5 +1,4 @@
 'use client'
-import { createClient } from '@/lib/supabase/client'
 import { Download, Loader2 } from 'lucide-react'
 import { useState } from 'react'
 
@@ -7,9 +6,13 @@ export default function DocumentDownload({ filePath, fileName }: { filePath: str
   const [loading, setLoading] = useState(false)
   async function handleDownload() {
     setLoading(true)
-    const supabase = createClient()
-    const { data } = await supabase.storage.from('Documents').createSignedUrl(filePath, 3600)
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+    const res = await fetch('/api/documents/signed-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filePath }),
+    })
+    const json = await res.json()
+    if (res.ok && json.signedUrl) window.open(json.signedUrl, '_blank')
     setLoading(false)
   }
   return (

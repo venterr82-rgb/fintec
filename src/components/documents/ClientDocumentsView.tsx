@@ -1,6 +1,5 @@
 'use client'
 
-import { createClient } from '@/lib/supabase/client'
 import { format } from 'date-fns'
 import { FolderOpen, Download, FileText, File } from 'lucide-react'
 
@@ -12,11 +11,14 @@ function FileIcon({ type }: { type?: string }) {
 const FOLDERS = ['Statutory Docs', 'Tax', 'Financials', 'Client Uploads']
 
 export default function ClientDocumentsView({ documents }: { documents: any[] }) {
-  const supabase = createClient()
-
   async function download(doc: any) {
-    const { data } = await supabase.storage.from('Documents').createSignedUrl(doc.file_path, 3600)
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+    const res = await fetch('/api/documents/signed-url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ filePath: doc.file_path }),
+    })
+    const json = await res.json()
+    if (res.ok && json.signedUrl) window.open(json.signedUrl, '_blank')
   }
 
   const byFolder = FOLDERS.reduce((acc, folder) => {

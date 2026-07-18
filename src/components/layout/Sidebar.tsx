@@ -26,7 +26,7 @@ export default function Sidebar({ tenantName = 'Compliance Hub' }: { tenantName?
     <aside className={clsx('flex flex-col h-screen bg-navy-700 border-r border-navy-800 transition-all duration-200 shrink-0', collapsed ? 'w-16' : 'w-60')}>
       <div className="flex items-center justify-between px-4 py-4 border-b border-navy-800 bg-[#f8f6f1]">
         {!collapsed && (
-          <img src={siteConfig.logoPath} alt={siteConfig.companyName} className="h-8 w-auto" />
+          <img src={siteConfig.logoPath} alt={siteConfig.companyName} className="h-12 w-auto" />
         )}
         <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-lg text-navy-500 hover:bg-black/5 transition-colors ml-auto">
           {collapsed ? <Menu className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}

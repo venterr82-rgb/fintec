@@ -17,7 +17,7 @@ export default function ClientNav({ tenantName = 'Compliance Hub', primaryColor 
   return (
     <aside className="w-56 flex flex-col h-screen border-r border-slate-200 bg-white shrink-0">
       <div className="px-4 py-5 border-b border-slate-100 bg-[#f8f6f1]">
-        <img src={siteConfig.logoPath} alt={siteConfig.companyName} className="h-8 w-auto" />
+        <img src={siteConfig.logoPath} alt={siteConfig.companyName} className="h-12 w-auto" />
         {userName && <p className="text-slate-500 text-xs mt-2 truncate">{userName}</p>}
       </div>
       <nav className="flex-1 px-3 py-4 space-y-0.5">
