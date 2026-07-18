@@ -3,6 +3,7 @@ import { FileText, CheckCircle, Clock, AlertCircle, Download, Upload, MessageSqu
 import DocumentDownload from '@/components/documents/DocumentDownload'
 import ClientUploadDoc from '@/components/tax/ClientUploadDoc'
 import Link from 'next/link'
+import { siteConfig } from '@/lib/config/site'
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
   awaiting_docs:     { label: 'Awaiting your documents', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' },
@@ -26,7 +27,7 @@ export default async function ClientDashboardPage() {
         <div className="card p-8 text-center">
           <AlertCircle className="w-10 h-10 text-slate-300 mx-auto mb-3" />
           <h2 className="font-semibold text-slate-700 mb-1">Account not linked</h2>
-          <p className="text-sm text-slate-500">Your account hasn't been linked to a client profile yet. Please contact Fintec Group.</p>
+          <p className="text-sm text-slate-500">Your account hasn't been linked to a client profile yet. Please contact {siteConfig.companyName}.</p>
         </div>
       </div>
     )

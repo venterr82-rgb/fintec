@@ -6,28 +6,10 @@
 import Link from 'next/link'
 import { CheckCircle, FileText, Upload, TrendingUp, Shield, Clock } from 'lucide-react'
 import PaymentButton from '@/components/PaymentButton'
+import { siteConfig } from '@/lib/config/site'
 
-const tiers = [
-  {
-    icon: FileText,
-    name: 'Basic',
-    amount: 45000,
-    desc: 'One IRP5, no extra income, straightforward return',
-  },
-  {
-    icon: TrendingUp,
-    name: 'Standard',
-    amount: 85000,
-    desc: 'Medical aid, retirement annuity, multiple IRP5s, or small side income',
-    mostChosen: true,
-  },
-  {
-    icon: Shield,
-    name: 'Premium',
-    amount: 150000,
-    desc: 'Provisional tax, rental income, capital gains, or multiple income streams',
-  },
-]
+const tierIcons = [FileText, TrendingUp, Shield]
+const tiers = siteConfig.pricingTiers.map((tier, i) => ({ ...tier, icon: tierIcons[i] ?? FileText }))
 
 const steps = [
   { num: '01', title: 'Pay online', desc: 'Secure payment via Yoco. Once paid you receive instant access.' },
@@ -54,8 +36,7 @@ export default function LandingPage() {
       {/* NAV */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0e1c2f] border-b border-[#c89b4a]/20 h-16 flex items-center justify-between px-6 lg:px-12">
         <div className="flex items-center gap-3">
-          <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
-            alt="Fintec Group" className="h-10 w-auto" />
+          <img src={siteConfig.logoPath} alt={siteConfig.companyName} className="h-10 w-auto" />
         </div>
         <div className="flex items-center gap-4">
           <Link href="/login"
@@ -75,7 +56,7 @@ export default function LandingPage() {
           style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&q=80')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
         <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-12 py-24">
           <p className="text-[#c89b4a] text-xs tracking-[0.18em] uppercase font-normal mb-7">
-            Fintec Group · Client Tax Portal
+            {siteConfig.companyName} · Client Tax Portal
           </p>
           <h1 className="text-white font-bold leading-[1.1] mb-7"
             style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(36px, 5vw, 64px)' }}>
@@ -99,12 +80,7 @@ export default function LandingPage() {
 
           {/* Credentials */}
           <div className="mt-16 pt-10 border-t border-white/[0.08] flex flex-wrap gap-10">
-            {[
-              { val: '20+', label: 'Years in practice' },
-              { val: 'SAIT', label: 'Registered Tax Practitioner' },
-              { val: 'CIBA', label: 'Chartered Business Accountant' },
-              { val: 'SARS', label: 'PR-0101146' },
-            ].map(({ val, label }) => (
+            {siteConfig.credentials.map(({ val, label }) => (
               <div key={val} className="flex flex-col">
                 <span className="text-[#c89b4a] font-bold leading-none mb-1.5"
                   style={{ fontFamily: "'Playfair Display', serif", fontSize: '28px' }}>{val}</span>
@@ -173,13 +149,13 @@ export default function LandingPage() {
               <div className="w-12 h-12 bg-[#f5edd8] rounded flex items-center justify-center mb-6 shrink-0">
                 <Shield className="w-5 h-5 text-[#c89b4a]" strokeWidth={1.5} />
               </div>
-              <h3 className="text-[#0e1c2f] font-medium text-lg mb-3">SARS Verification</h3>
+              <h3 className="text-[#0e1c2f] font-medium text-lg mb-3">{siteConfig.customQuoteTier.name}</h3>
               <p className="text-[#5a6a7e] text-sm leading-relaxed flex-1 mb-6">
-                SARS audit, verification, or dispute assistance. Scope and price depend on the case.
+                {siteConfig.customQuoteTier.desc}
               </p>
               <div className="pt-5 border-t border-black/[0.06] space-y-4">
                 <span className="text-[#c89b4a] font-medium text-sm block">Custom quote</span>
-                <a href="mailto:rventer@fintecgroup.co.za?subject=SARS Verification Assistance"
+                <a href={`mailto:${siteConfig.contact.email}?subject=${encodeURIComponent(siteConfig.customQuoteTier.subject)}`}
                   className="btn-secondary w-full justify-center text-sm">
                   Contact us
                 </a>
@@ -242,16 +218,15 @@ export default function LandingPage() {
       <section className="py-20 px-6 lg:px-12 bg-[#0e1c2f] border-t border-[#c89b4a]/10">
         <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
           <div>
-            <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
-              alt="Fintec Group" className="h-10 w-auto mb-4 opacity-80" />
+            <img src={siteConfig.logoPath} alt={siteConfig.companyName} className="h-10 w-auto mb-4 opacity-80" />
             <p className="text-white/30 text-sm leading-relaxed">
               Independent accounting and tax practice.<br />
-              Table View, Cape Town.
+              {siteConfig.location}.
             </p>
           </div>
           {[
-            { label: 'Email', val: 'rventer@fintecgroup.co.za', href: 'mailto:rventer@fintecgroup.co.za' },
-            { label: 'WhatsApp', val: '+27 64 584 3869', href: 'https://wa.me/27645843869' },
+            { label: 'Email', val: siteConfig.contact.email, href: `mailto:${siteConfig.contact.email}` },
+            { label: 'WhatsApp', val: siteConfig.contact.whatsappDisplay, href: siteConfig.contact.whatsappLink },
           ].map(({ label, val, href }) => (
             <div key={label}>
               <p className="text-white/30 text-xs uppercase tracking-wider mb-2">{label}</p>
@@ -267,17 +242,17 @@ export default function LandingPage() {
       {/* FOOTER */}
       <footer className="bg-[#0e1c2f] border-t border-white/[0.06] px-6 lg:px-12 py-6">
         <div className="max-w-5xl mx-auto flex flex-wrap justify-between gap-4">
-          <p className="text-white/20 text-xs">© 2025 Fintec Group (Pty) Ltd. SAIT 60630773 · SARS PR-0101146 · CIBA CIBA202110-2465</p>
+          <p className="text-white/20 text-xs">{siteConfig.footerText}</p>
           <p className="text-white/20 text-xs">
-            <a href="https://fintecgroup.co.za/privacy-policy" className="hover:text-white/40">Privacy Policy</a>
+            <a href={siteConfig.privacyUrl} className="hover:text-white/40">Privacy Policy</a>
             {' · '}
-            <a href="https://fintecgroup.co.za" className="hover:text-white/40">fintecgroup.co.za</a>
+            <a href={`https://${siteConfig.domain}`} className="hover:text-white/40">{siteConfig.domain}</a>
           </p>
         </div>
       </footer>
 
       {/* WHATSAPP FLOAT */}
-      <a href="https://wa.me/27645843869" target="_blank" rel="noopener noreferrer"
+      <a href={siteConfig.contact.whatsappLink} target="_blank" rel="noopener noreferrer"
         className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110"
         style={{ background: '#25D366' }}>
         <svg viewBox="0 0 24 24" fill="white" width="28" height="28">

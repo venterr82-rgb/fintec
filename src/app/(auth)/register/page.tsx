@@ -6,6 +6,7 @@
 import { Suspense, useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Shield, Eye, EyeOff, Loader2, AlertCircle } from 'lucide-react'
+import { siteConfig } from '@/lib/config/site'
 
 export default function RegisterPage() {
   return (
@@ -68,9 +69,9 @@ function RegisterForm() {
       <div className="w-full max-w-md">
         {/* Brand */}
         <div className="flex flex-col items-center mb-8">
-          <img src="/logo.png" alt="Fintec Group" style={{ height: '96px', width: 'auto' }} className="mb-2" />
+          <img src={siteConfig.logoPath} alt={siteConfig.companyName} style={{ height: '96px', width: 'auto' }} className="mb-2" />
           <h1 className="text-2xl font-bold text-white">Create your account</h1>
-          <p className="text-navy-300 text-sm mt-1">Fintec Group Client Portal</p>
+          <p className="text-navy-300 text-sm mt-1">{siteConfig.companyName} Client Portal</p>
         </div>
 
         {/* Selected tier confirmation */}
@@ -145,10 +146,10 @@ function RegisterForm() {
 
             <p className="text-center text-xs text-slate-400 mt-4">
               By creating an account you agree to our{' '}
-              <a href="https://fintecgroup.co.za/terms"
+              <a href={siteConfig.termsUrl}
                  className="text-navy-600 hover:underline">Terms of Use</a>
               {' '}and{' '}
-              <a href="https://fintecgroup.co.za/privacy-policy"
+              <a href={siteConfig.privacyUrl}
                  className="text-navy-600 hover:underline">Privacy Policy</a>.
               {' '}Your information is handled in accordance with POPIA.
             </p>
@@ -161,7 +162,7 @@ function RegisterForm() {
         </div>
 
         <p className="text-center text-navy-400 text-xs mt-6">
-          © 2026 Fintec Group (Pty) Ltd · SAIT 60630773 · SARS PR-0101146
+          {siteConfig.footerText}
         </p>
       </div>
     </div>

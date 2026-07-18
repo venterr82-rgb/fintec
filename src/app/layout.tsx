@@ -1,11 +1,12 @@
 import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
+import { siteConfig } from '@/lib/config/site'
 
 const inter = Inter({ subsets: ['latin'], variable: '--font-inter' })
 
 export const metadata: Metadata = {
-  title: 'Compliance Hub | Fintec Group',
+  title: `Compliance Hub | ${siteConfig.companyName}`,
   description: 'Accounting & Tax Compliance Portal',
 }
 

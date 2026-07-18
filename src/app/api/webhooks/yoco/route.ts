@@ -13,6 +13,7 @@ import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { Resend } from 'resend'
+import { siteConfig } from '@/lib/config/site'
 
 const REPLAY_THRESHOLD_SECONDS = 3 * 60
 
@@ -78,17 +79,19 @@ export async function POST(request: NextRequest) {
 
   let email: string | null = null
   let amount: number | null = null
+  let tierName: string | null = null
 
   if (orderId) {
     const { data: pending } = await supabase
       .from('pending_checkouts')
-      .select('email, amount')
+      .select('email, amount, tier_name')
       .eq('checkout_id', orderId)
       .maybeSingle()
 
     if (pending) {
       email = pending.email
       amount = pending.amount
+      tierName = pending.tier_name
     } else {
       console.warn(`No pending_checkouts match for order_id ${orderId} — payment ${yocoPaymentId} recorded without email`)
     }
@@ -107,15 +110,19 @@ export async function POST(request: NextRequest) {
 
   if (email) {
     const resend = new Resend(process.env.RESEND_API_KEY)
-    const registerUrl = `https://portal.fintecgroup.co.za/register?token=${yocoPaymentId}`
+    const appUrl = process.env.NEXT_PUBLIC_APP_URL!
+    const params = new URLSearchParams({ token: yocoPaymentId })
+    if (tierName) params.set('tier', tierName)
+    if (amount) params.set('amount', String(Math.round(amount / 100)))
+    const registerUrl = `${appUrl}/register?${params.toString()}`
 
     await resend.emails.send({
       from: process.env.RESEND_FROM_EMAIL!,
       to: email,
-      subject: 'Your Fintec Group portal access is ready',
+      subject: `Your ${siteConfig.companyName} portal access is ready`,
       html: `
         <p>Payment confirmed — thank you.</p>
-        <p>Click the link below to create your Fintec Group client portal account:</p>
+        <p>Click the link below to create your ${siteConfig.companyName} client portal account:</p>
         <p><a href="${registerUrl}">${registerUrl}</a></p>
       `,
     })

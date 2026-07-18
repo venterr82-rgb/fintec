@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
+import { siteConfig } from '@/lib/config/site'
 
 export default function LoginPage() {
   const [showPw, setShowPw] = useState(false)
@@ -9,7 +10,7 @@ export default function LoginPage() {
     <div className="min-h-screen bg-gradient-to-br from-navy-900 via-navy-800 to-navy-700 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="flex flex-col items-center mb-8">
-          <img src="/logo.png" alt="Fintec Group" style={{ height: '96px', width: 'auto' }} className="mb-2" />
+          <img src={siteConfig.logoPath} alt={siteConfig.companyName} style={{ height: '96px', width: 'auto' }} className="mb-2" />
           <p className="text-navy-300 text-sm mt-1">Client Portal</p>
         </div>
 
@@ -40,7 +41,7 @@ export default function LoginPage() {
         </div>
 
         <p className="text-center text-navy-400 text-xs mt-6">
-          © 2026 Fintec Group (Pty) Ltd · SAIT 60630773 · SARS PR-0101146
+          {siteConfig.footerText}
         </p>
       </div>
     </div>
