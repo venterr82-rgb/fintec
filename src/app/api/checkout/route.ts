@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     body: JSON.stringify({
       amount: Math.round(amount),
       currency: 'ZAR',
-      successUrl: `${appUrl}/register`,
+      successUrl: `${appUrl}/register?tier=${encodeURIComponent(tierName ?? '')}&amount=${Math.round(amount / 100)}`,
       cancelUrl: `${appUrl}/`,
       failureUrl: `${appUrl}/`,
       metadata: { email: email.toLowerCase().trim() },

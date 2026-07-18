@@ -19,6 +19,8 @@ function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const token = searchParams.get('token')
+  const tier = searchParams.get('tier')
+  const amount = searchParams.get('amount')
 
   const [form, setForm] = useState({ full_name: '', email: '', password: '', confirm: '' })
   const [showPw, setShowPw] = useState(false)
@@ -70,6 +72,13 @@ function RegisterForm() {
           <h1 className="text-2xl font-bold text-white">Create your account</h1>
           <p className="text-navy-300 text-sm mt-1">Fintec Group Client Portal</p>
         </div>
+
+        {/* Selected tier confirmation */}
+        {tier && amount && (
+          <div className="bg-emerald-500/20 border border-emerald-400/40 rounded-xl px-5 py-4 mb-5 text-center">
+            <p className="text-emerald-300 text-sm font-medium">✓ {tier} package — R{amount} paid</p>
+          </div>
+        )}
 
         {/* Payment confirmation banner */}
         {token && (
@@ -128,6 +137,14 @@ function RegisterForm() {
               className="btn-primary w-full justify-center py-3 mt-2">
               {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Create account & go to portal'}
             </button>
+
+            <p className="text-center text-slate-400 text-xs leading-relaxed">
+              By creating an account you agree to our{' '}
+              <a href="https://fintecgroup.co.za/terms" className="text-navy-600 hover:underline">Terms of Use</a>
+              {' '}and{' '}
+              <a href="https://fintecgroup.co.za/privacy-policy" className="text-navy-600 hover:underline">Privacy Policy</a>.
+              Your information is processed in accordance with POPIA.
+            </p>
           </form>
 
           <p className="text-center text-slate-400 text-xs mt-5">
@@ -137,7 +154,7 @@ function RegisterForm() {
         </div>
 
         <p className="text-center text-navy-400 text-xs mt-6">
-          © {new Date().getFullYear()} Fintec Group (Pty) Ltd · SAIT 60630773
+          © 2025 Fintec Group (Pty) Ltd · SAIT 60630773 · SARS PR-0101146
         </p>
       </div>
     </div>
