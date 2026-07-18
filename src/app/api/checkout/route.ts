@@ -13,7 +13,7 @@ const adminClient = () => createClient(
 )
 
 export async function POST(request: NextRequest) {
-  const { email, amount } = await request.json()
+  const { email, amount, tierName } = await request.json()
 
   if (!email?.trim() || !amount || amount <= 0) {
     return NextResponse.json({ error: 'Email and amount are required.' }, { status: 400 })
@@ -50,6 +50,7 @@ export async function POST(request: NextRequest) {
     checkout_id: checkout.id,
     email: email.toLowerCase().trim(),
     amount: Math.round(amount),
+    tier_name: tierName ?? null,
   })
 
   if (insertError) {

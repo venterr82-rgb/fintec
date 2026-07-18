@@ -2,14 +2,14 @@
 import { useState } from 'react'
 import { Loader2, X } from 'lucide-react'
 
-export default function PaymentButton({ className, defaultAmount, children }: {
+export default function PaymentButton({ className, tierName, amount, children }: {
   className?: string
-  defaultAmount: number
+  tierName: string
+  amount: number
   children: React.ReactNode
 }) {
   const [open, setOpen] = useState(false)
   const [email, setEmail] = useState('')
-  const [amount, setAmount] = useState(String(defaultAmount))
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -21,7 +21,7 @@ export default function PaymentButton({ className, defaultAmount, children }: {
     const res = await fetch('/api/checkout', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, amount: Number(amount) * 100 }),
+      body: JSON.stringify({ email, amount, tierName }),
     })
     const json = await res.json()
 
@@ -47,7 +47,9 @@ export default function PaymentButton({ className, defaultAmount, children }: {
               className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">
               <X className="w-5 h-5" />
             </button>
-            <h3 className="text-lg font-bold text-[#0e1c2f] mb-1">Get started</h3>
+            <h3 className="text-lg font-bold text-[#0e1c2f] mb-1">
+              {tierName} — R{(amount / 100).toLocaleString()}
+            </h3>
             <p className="text-sm text-slate-500 mb-5">
               We'll send your registration link to this email once payment is confirmed.
             </p>
@@ -56,11 +58,6 @@ export default function PaymentButton({ className, defaultAmount, children }: {
                 <label className="label">Email address</label>
                 <input type="email" required value={email} onChange={e => setEmail(e.target.value)}
                   className="input" placeholder="you@email.com" autoComplete="email" />
-              </div>
-              <div>
-                <label className="label">Amount (ZAR)</label>
-                <input type="number" required min={1} step="1" value={amount}
-                  onChange={e => setAmount(e.target.value)} className="input" />
               </div>
               {error && (
                 <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-3 py-2 rounded-lg">

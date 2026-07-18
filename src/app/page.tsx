@@ -7,26 +7,25 @@ import Link from 'next/link'
 import { CheckCircle, FileText, Upload, TrendingUp, Shield, Clock } from 'lucide-react'
 import PaymentButton from '@/components/PaymentButton'
 
-const DEFAULT_AMOUNT_ZAR = 850
-
-const services = [
+const tiers = [
   {
     icon: FileText,
-    title: 'Personal Income Tax',
-    desc: 'IT12 return prepared and submitted to SARS. Employment, rental, business, investments.',
-    price: 'From R 850',
+    name: 'Basic',
+    amount: 45000,
+    desc: 'One IRP5, no extra income, straightforward return',
   },
   {
     icon: TrendingUp,
-    title: 'Provisional Tax',
-    desc: 'IRP6 bi-annual submissions with calculation summary. Due Aug & Feb.',
-    price: 'From R 450',
+    name: 'Standard',
+    amount: 85000,
+    desc: 'Medical aid, retirement annuity, multiple IRP5s, or small side income',
+    mostChosen: true,
   },
   {
     icon: Shield,
-    title: 'Tax Compliance Package',
-    desc: 'Income tax + provisional tax + SARS correspondence. Full year support.',
-    price: 'From R 1 500',
+    name: 'Premium',
+    amount: 150000,
+    desc: 'Provisional tax, rental income, capital gains, or multiple income streams',
   },
 ]
 
@@ -63,10 +62,10 @@ export default function LandingPage() {
             className="text-sm text-white/60 hover:text-[#c89b4a] transition-colors hidden sm:block">
             Client Login
           </Link>
-          <PaymentButton defaultAmount={DEFAULT_AMOUNT_ZAR}
+          <a href="#pricing"
             className="bg-[#c89b4a] hover:bg-[#e0b96a] text-[#0e1c2f] text-sm font-medium px-5 py-2.5 rounded transition-colors">
             Get Started
-          </PaymentButton>
+          </a>
         </div>
       </nav>
 
@@ -88,10 +87,10 @@ export default function LandingPage() {
             track your return in real time, and get clarity on your tax position — without the back-and-forth emails.
           </p>
           <div className="flex flex-wrap gap-4">
-            <PaymentButton defaultAmount={DEFAULT_AMOUNT_ZAR}
+            <a href="#pricing"
               className="bg-[#c89b4a] hover:bg-[#e0b96a] text-[#0e1c2f] font-medium px-9 py-4 rounded text-base transition-all hover:-translate-y-0.5 inline-block">
               Get Started — Pay Online
-            </PaymentButton>
+            </a>
             <Link href="/login"
               className="border border-[#c89b4a]/50 hover:border-[#c89b4a] text-[#c89b4a] px-9 py-4 rounded text-base transition-colors inline-block">
               Existing Client Login
@@ -137,8 +136,8 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* SERVICES */}
-      <section className="py-24 px-6 lg:px-12 bg-[#f8f6f1]">
+      {/* PRICING */}
+      <section id="pricing" className="py-24 px-6 lg:px-12 bg-[#f8f6f1] scroll-mt-16">
         <div className="max-w-5xl mx-auto">
           <p className="text-[#c89b4a] text-xs tracking-[0.18em] uppercase mb-4">What's included</p>
           <h2 className="text-[#0e1c2f] font-bold mb-4"
@@ -148,19 +147,44 @@ export default function LandingPage() {
           <p className="text-[#5a6a7e] text-base max-w-lg mb-14 leading-relaxed">
             For individuals with employment income, rental properties, sole proprietor income, investments, or a combination.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-black/[0.06] rounded overflow-hidden border border-black/[0.06]">
-            {services.map(({ icon: Icon, title, desc, price }) => (
-              <div key={title} className="bg-white p-10 flex flex-col">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-px bg-black/[0.06] rounded overflow-hidden border border-black/[0.06]">
+            {tiers.map(({ icon: Icon, name, amount, desc, mostChosen }) => (
+              <div key={name} className={`bg-white p-10 flex flex-col relative ${mostChosen ? 'ring-2 ring-inset ring-[#c89b4a]' : ''}`}>
+                {mostChosen && (
+                  <span className="absolute top-4 right-4 bg-[#c89b4a] text-[#0e1c2f] text-[10px] font-bold uppercase tracking-wider px-2 py-1 rounded">
+                    Most chosen
+                  </span>
+                )}
                 <div className="w-12 h-12 bg-[#f5edd8] rounded flex items-center justify-center mb-6 shrink-0">
                   <Icon className="w-5 h-5 text-[#c89b4a]" strokeWidth={1.5} />
                 </div>
-                <h3 className="text-[#0e1c2f] font-medium text-lg mb-3">{title}</h3>
+                <h3 className="text-[#0e1c2f] font-medium text-lg mb-3">{name}</h3>
                 <p className="text-[#5a6a7e] text-sm leading-relaxed flex-1 mb-6">{desc}</p>
-                <div className="pt-5 border-t border-black/[0.06]">
-                  <span className="text-[#c89b4a] font-medium text-sm">{price}</span>
+                <div className="pt-5 border-t border-black/[0.06] space-y-4">
+                  <span className="text-[#c89b4a] font-medium text-sm block">R {(amount / 100).toLocaleString()}</span>
+                  <PaymentButton tierName={name} amount={amount}
+                    className="btn-primary w-full justify-center text-sm">
+                    Get Started
+                  </PaymentButton>
                 </div>
               </div>
             ))}
+            <div className="bg-white p-10 flex flex-col">
+              <div className="w-12 h-12 bg-[#f5edd8] rounded flex items-center justify-center mb-6 shrink-0">
+                <Shield className="w-5 h-5 text-[#c89b4a]" strokeWidth={1.5} />
+              </div>
+              <h3 className="text-[#0e1c2f] font-medium text-lg mb-3">SARS Verification</h3>
+              <p className="text-[#5a6a7e] text-sm leading-relaxed flex-1 mb-6">
+                SARS audit, verification, or dispute assistance. Scope and price depend on the case.
+              </p>
+              <div className="pt-5 border-t border-black/[0.06] space-y-4">
+                <span className="text-[#c89b4a] font-medium text-sm block">Custom quote</span>
+                <a href="mailto:rventer@fintecgroup.co.za?subject=SARS Verification Assistance"
+                  className="btn-secondary w-full justify-center text-sm">
+                  Contact us
+                </a>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -180,10 +204,10 @@ export default function LandingPage() {
                 Once you register, you get a private client portal where you can see your tax status,
                 upload documents, view your calculation, and track your return — from any device.
               </p>
-              <PaymentButton defaultAmount={DEFAULT_AMOUNT_ZAR}
+              <a href="#pricing"
                 className="bg-[#c89b4a] hover:bg-[#e0b96a] text-[#0e1c2f] font-medium px-8 py-3.5 rounded text-sm transition-colors inline-block">
                 Get Access Now
-              </PaymentButton>
+              </a>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {included.map(item => (
@@ -207,10 +231,10 @@ export default function LandingPage() {
           <p className="text-[#0e1c2f]/60 mb-8 text-base">
             SARS auto-assessments open July. Provisional tax due August. Get ahead of it.
           </p>
-          <PaymentButton defaultAmount={DEFAULT_AMOUNT_ZAR}
+          <a href="#pricing"
             className="bg-[#0e1c2f] hover:bg-[#162540] text-white font-medium px-10 py-4 rounded text-base transition-colors inline-block">
             Pay & Register Now →
-          </PaymentButton>
+          </a>
         </div>
       </section>
 
