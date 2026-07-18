@@ -25,12 +25,9 @@ export default function Sidebar({ tenantName = 'Compliance Hub' }: { tenantName?
     <aside className={clsx('flex flex-col h-screen bg-navy-700 border-r border-navy-800 transition-all duration-200 shrink-0', collapsed ? 'w-16' : 'w-60')}>
       <div className="flex items-center justify-between px-4 py-4 border-b border-navy-800">
         {!collapsed && (
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-8 h-8 rounded-lg bg-white flex items-center justify-center shrink-0 p-1">
-              <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
-                alt="Fintec Group" className="h-full w-full object-contain" />
-            </div>
-            <span className="text-white font-semibold text-sm truncate">{tenantName}</span>
+          <div className="bg-white rounded-lg px-3 py-2 min-w-0">
+            <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
+              alt="Fintec Group" className="h-6 w-auto" />
           </div>
         )}
         <button onClick={() => setCollapsed(!collapsed)} className="p-1.5 rounded-lg text-navy-300 hover:bg-navy-600 hover:text-white transition-colors ml-auto">
