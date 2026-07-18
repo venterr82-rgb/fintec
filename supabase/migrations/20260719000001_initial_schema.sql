@@ -1,33 +1,16 @@
--- Consolidated schema for the compliance portal.
+-- Initial schema — table definitions.
 --
--- Reconstructed from the live Supabase project's PostgREST-generated
--- OpenAPI schema (2026-07-18), since the original tables were created
--- directly in the Supabase dashboard/SQL editor and were never captured
--- in a migration file. Column names, types, defaults, and foreign keys
--- below match the live database at the time this was generated.
+-- Reconstructed from the live project (yersjklqaluntasvfwiu) via direct
+-- Postgres introspection on 2026-07-19, since the original tables were
+-- created directly in the Supabase dashboard/SQL editor and were never
+-- captured in version control. This migration, together with
+-- 20260719000002_rls_policies_functions_views.sql, is the first complete,
+-- verified capture of the live schema (superseding the earlier
+-- supabase/schema.sql, which was reconstructed only from PostgREST's
+-- OpenAPI doc and was missing RLS/functions/views entirely).
 --
--- KNOWN GAPS — not recoverable from the PostgREST schema alone:
---   1. Row Level Security policies (not exposed via the REST API).
---      Every tenant-scoped table below almost certainly has RLS enabled
---      with policies keyed off auth.uid() / users.tenant_id — those
---      policies must be exported directly from Supabase (Dashboard ->
---      Authentication -> Policies, or `supabase db dump` with a real
---      Postgres connection string) before this schema is usable for a
---      fresh customer project.
---   2. Two views (`company_compliance_summary`, `upcoming_compliance`)
---      exist in the database. Only their *output* columns are known
---      here (from the schema introspection) — the underlying SELECT
---      logic is not, and is NOT guessed at below. These must be pulled
---      from the live project (Dashboard -> Database -> Views, or
---      `pg_get_viewdef`) and added separately.
---   3. Indexes beyond primary keys, check constraints, and exact
---      ON DELETE/ON UPDATE behavior for foreign keys are not exposed by
---      this introspection method and are not represented below.
---
--- For a genuinely new customer deployment, treat this file as a strong
--- starting point, not a verified pg_dump — confirm against the source
--- project's real `supabase db dump --schema public` output if at all
--- possible before relying on it in production.
+-- Column names, types, defaults, and foreign keys below were confirmed
+-- against pg_catalog on the live database, not guessed.
 
 create extension if not exists pgcrypto;
 
@@ -58,7 +41,7 @@ create table users (
   email text not null,
   full_name text,
   role text not null,
-  person_id uuid, -- soft reference to people.id; no DB-level FK found in the live schema
+  person_id uuid, -- soft reference to people.id; no DB-level FK on the live table
   avatar_url text,
   is_active boolean default true,
   last_login timestamptz,
@@ -344,7 +327,7 @@ create table activity_logs (
 );
 
 -- =========================================================================
--- Payment / registration flow (added 2026-07-18, this session)
+-- Payment / registration flow (added 2026-07-18)
 -- =========================================================================
 create table verified_payments (
   id uuid primary key default gen_random_uuid(),
@@ -365,18 +348,12 @@ create table pending_checkouts (
 );
 
 -- =========================================================================
--- Views — NOT reconstructed (see header). Output columns only, for
--- reference when rebuilding these manually from the source project:
---
---   company_compliance_summary(
---     company_id, company_name, tenant_id,
---     pending_count, overdue_count, submitted_count, next_due_date
---   )
---
---   upcoming_compliance(
---     id, tenant_id, company_id, type, period, due_date, status,
---     submitted_date, reference_number, amount_due, amount_paid,
---     penalty_amount, assigned_to, notes, created_at, updated_at,
---     company_name, registration_number, days_until_due
---   )
+-- Standard Supabase grants — access control is enforced entirely through
+-- RLS (see 20260719000002), not through these grants. Confirmed live:
+-- anon/authenticated/service_role all hold full table privileges
+-- (arwdDxtm), matching Supabase's default template for the public schema.
 -- =========================================================================
+grant usage on schema public to anon, authenticated, service_role;
+grant all on all tables in schema public to anon, authenticated, service_role;
+grant all on all sequences in schema public to anon, authenticated, service_role;
+grant all on all functions in schema public to anon, authenticated, service_role;

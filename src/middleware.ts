@@ -5,8 +5,8 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname
 
   // Public routes — always allow through
-  const publicPaths = ['/', '/register']
-  const publicApiPaths = ['/api/checkout', '/api/webhooks/yoco', '/api/auth/register']
+  const publicPaths = ['/', '/register', '/for-firms']
+  const publicApiPaths = ['/api/checkout', '/api/webhooks/yoco', '/api/auth/register', '/api/leads', '/api/leads/checkout']
   if (publicPaths.includes(pathname)) return NextResponse.next()
   if (publicApiPaths.includes(pathname)) return NextResponse.next()
   if (pathname.startsWith('/auth')) return NextResponse.next()

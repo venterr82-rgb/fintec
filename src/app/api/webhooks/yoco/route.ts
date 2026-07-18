@@ -14,6 +14,7 @@ import { createClient } from '@supabase/supabase-js'
 import { createHmac, timingSafeEqual } from 'crypto'
 import { Resend } from 'resend'
 import { siteConfig } from '@/lib/config/site'
+import { firmsConfig } from '@/lib/config/firms'
 
 const REPLAY_THRESHOLD_SECONDS = 3 * 60
 
@@ -80,11 +81,13 @@ export async function POST(request: NextRequest) {
   let email: string | null = null
   let amount: number | null = null
   let tierName: string | null = null
+  let product = 'tax_service'
+  let leadId: string | null = null
 
   if (orderId) {
     const { data: pending } = await supabase
       .from('pending_checkouts')
-      .select('email, amount, tier_name')
+      .select('email, amount, tier_name, product, lead_id')
       .eq('checkout_id', orderId)
       .maybeSingle()
 
@@ -92,9 +95,41 @@ export async function POST(request: NextRequest) {
       email = pending.email
       amount = pending.amount
       tierName = pending.tier_name
+      product = pending.product ?? 'tax_service'
+      leadId = pending.lead_id
     } else {
       console.warn(`No pending_checkouts match for order_id ${orderId} — payment ${yocoPaymentId} recorded without email`)
     }
+  }
+
+  // Firm platform-setup-fee flow (B2B, sells the platform itself) — entirely
+  // separate from the client tax-service flow below. No verified_payments
+  // row (that table exists purely to gate client self-registration, which
+  // doesn't apply here), no registration email — just mark the lead paid
+  // and send the onboarding calendar link.
+  if (product === 'firm_setup_fee') {
+    if (leadId) {
+      await supabase.from('leads').update({
+        paid_setup_fee: true,
+        paid_at: new Date().toISOString(),
+      }).eq('id', leadId)
+    }
+
+    if (email) {
+      const resend = new Resend(process.env.RESEND_API_KEY)
+      await resend.emails.send({
+        from: process.env.RESEND_FROM_EMAIL!,
+        to: email,
+        subject: `Your ${siteConfig.companyName} platform setup is confirmed`,
+        html: `
+          <p>Payment received — thank you.</p>
+          <p>Book your onboarding call here:</p>
+          <p><a href="${firmsConfig.onboardingCalendarUrl}">${firmsConfig.onboardingCalendarUrl}</a></p>
+        `,
+      })
+    }
+
+    return NextResponse.json({ ok: true })
   }
 
   const { error: insertError } = await supabase.from('verified_payments').insert({

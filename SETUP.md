@@ -9,15 +9,16 @@ follow them exactly.
 ## 1. Supabase project
 
 1. Create a new project at supabase.com.
-2. Open the SQL editor and run `supabase/schema.sql` from this repo.
-   - **⚠ gotcha:** that file does *not* include Row Level Security
-     policies or the two views (`company_compliance_summary`,
-     `upcoming_compliance`) — those were never captured in version
-     control for the original project either. If you have access to the
-     original Fintec Supabase project, pull them from there
-     (`Database → Policies`, `Database → Views`, or a real
-     `supabase db dump`) before going live. Without RLS, any query made
-     with the anon key and a real user session has no tenant isolation.
+2. Run the migrations in `supabase/migrations/` **in order** via the SQL
+   editor, or `supabase db push` once linked:
+   - `20260719000001_initial_schema.sql` — all tables + standard grants.
+   - `20260719000002_rls_policies_functions_views.sql` — RLS policies,
+     the `private` schema helper functions, `generate_tax_documents`,
+     and both views. **Do not skip this file** — without it, every
+     table is wide open to any authenticated user regardless of tenant,
+     since RLS enforcement lives entirely here.
+   - Any later-dated files in that folder (e.g. `leads`/checkout product
+     discriminator additions) — check the folder for the current list.
 3. Create the initial tenant row manually:
    ```sql
    insert into tenants (name, slug) values ('Customer Name', 'customer-slug');
