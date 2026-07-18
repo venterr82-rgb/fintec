@@ -1,65 +1,266 @@
-import Image from "next/image";
+// src/app/page.tsx
+// Public landing page at portal.fintecgroup.co.za
+// Replaces the current redirect — unauthenticated visitors see this
+// Authenticated users are redirected by middleware to /dashboard or /my-company
 
-export default function Home() {
+import Link from 'next/link'
+import { CheckCircle, FileText, Upload, TrendingUp, Shield, Clock } from 'lucide-react'
+import PaymentButton from '@/components/PaymentButton'
+
+const DEFAULT_AMOUNT_ZAR = 850
+
+const services = [
+  {
+    icon: FileText,
+    title: 'Personal Income Tax',
+    desc: 'IT12 return prepared and submitted to SARS. Employment, rental, business, investments.',
+    price: 'From R 850',
+  },
+  {
+    icon: TrendingUp,
+    title: 'Provisional Tax',
+    desc: 'IRP6 bi-annual submissions with calculation summary. Due Aug & Feb.',
+    price: 'From R 450',
+  },
+  {
+    icon: Shield,
+    title: 'Tax Compliance Package',
+    desc: 'Income tax + provisional tax + SARS correspondence. Full year support.',
+    price: 'From R 1 500',
+  },
+]
+
+const steps = [
+  { num: '01', title: 'Pay online', desc: 'Secure payment via Yoco. Once paid you receive instant access.' },
+  { num: '02', title: 'Create your account', desc: 'Register with your email and set a password. Takes 30 seconds.' },
+  { num: '03', title: 'Upload your documents', desc: 'We guide you through exactly what we need. No paperwork, no emails.' },
+  { num: '04', title: 'We handle the rest', desc: 'Your return is prepared, you approve it, we submit to SARS.' },
+]
+
+const included = [
+  'Secure document upload portal',
+  'Real-time status updates',
+  'Tax calculation summary',
+  'Provisional tax planning',
+  'RA contribution advice',
+  'Direct accountant access',
+  'SARS correspondence handled',
+  '5-year income history view',
+]
+
+export default function LandingPage() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    <div className="min-h-screen bg-[#f8f6f1]" style={{ fontFamily: "'DM Sans', system-ui, sans-serif" }}>
+
+      {/* NAV */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-[#0e1c2f] border-b border-[#c89b4a]/20 h-16 flex items-center justify-between px-6 lg:px-12">
+        <div className="flex items-center gap-3">
+          <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
+            alt="Fintec Group" className="h-10 w-auto" />
+        </div>
+        <div className="flex items-center gap-4">
+          <Link href="/login"
+            className="text-sm text-white/60 hover:text-[#c89b4a] transition-colors hidden sm:block">
+            Client Login
+          </Link>
+          <PaymentButton defaultAmount={DEFAULT_AMOUNT_ZAR}
+            className="bg-[#c89b4a] hover:bg-[#e0b96a] text-[#0e1c2f] text-sm font-medium px-5 py-2.5 rounded transition-colors">
+            Get Started
+          </PaymentButton>
+        </div>
+      </nav>
+
+      {/* HERO */}
+      <section className="pt-16 bg-[#0e1c2f] min-h-[90vh] flex items-center relative overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.07]"
+          style={{ backgroundImage: "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1600&q=80')", backgroundSize: 'cover', backgroundPosition: 'center' }} />
+        <div className="relative z-10 max-w-5xl mx-auto px-6 lg:px-12 py-24">
+          <p className="text-[#c89b4a] text-xs tracking-[0.18em] uppercase font-normal mb-7">
+            Fintec Group · Client Tax Portal
+          </p>
+          <h1 className="text-white font-bold leading-[1.1] mb-7"
+            style={{ fontFamily: "'Playfair Display', Georgia, serif", fontSize: 'clamp(36px, 5vw, 64px)' }}>
+            Your tax return,<br />
+            <em className="text-[#c89b4a] font-normal italic">handled properly.</em>
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="text-white/60 text-lg max-w-xl mb-10 leading-relaxed">
+            Registered tax practitioner. 20+ years experience. Upload your documents online,
+            track your return in real time, and get clarity on your tax position — without the back-and-forth emails.
+          </p>
+          <div className="flex flex-wrap gap-4">
+            <PaymentButton defaultAmount={DEFAULT_AMOUNT_ZAR}
+              className="bg-[#c89b4a] hover:bg-[#e0b96a] text-[#0e1c2f] font-medium px-9 py-4 rounded text-base transition-all hover:-translate-y-0.5 inline-block">
+              Get Started — Pay Online
+            </PaymentButton>
+            <Link href="/login"
+              className="border border-[#c89b4a]/50 hover:border-[#c89b4a] text-[#c89b4a] px-9 py-4 rounded text-base transition-colors inline-block">
+              Existing Client Login
+            </Link>
+          </div>
+
+          {/* Credentials */}
+          <div className="mt-16 pt-10 border-t border-white/[0.08] flex flex-wrap gap-10">
+            {[
+              { val: '20+', label: 'Years in practice' },
+              { val: 'SAIT', label: 'Registered Tax Practitioner' },
+              { val: 'CIBA', label: 'Chartered Business Accountant' },
+              { val: 'SARS', label: 'PR-0101146' },
+            ].map(({ val, label }) => (
+              <div key={val} className="flex flex-col">
+                <span className="text-[#c89b4a] font-bold leading-none mb-1.5"
+                  style={{ fontFamily: "'Playfair Display', serif", fontSize: '28px' }}>{val}</span>
+                <span className="text-white/35 text-xs tracking-wider uppercase">{label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="py-24 px-6 lg:px-12 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-[#c89b4a] text-xs tracking-[0.18em] uppercase mb-4">Simple process</p>
+          <h2 className="text-[#0e1c2f] font-bold mb-16"
+            style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(26px, 3vw, 40px)' }}>
+            From signup to submitted — in days, not weeks.
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {steps.map(({ num, title, desc }) => (
+              <div key={num} className="relative">
+                <div className="text-[#c89b4a]/15 font-bold mb-4 leading-none select-none"
+                  style={{ fontFamily: "'Playfair Display', serif", fontSize: '56px' }}>{num}</div>
+                <h3 className="text-[#0e1c2f] font-medium text-lg mb-3">{title}</h3>
+                <p className="text-[#5a6a7e] text-sm leading-relaxed">{desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SERVICES */}
+      <section className="py-24 px-6 lg:px-12 bg-[#f8f6f1]">
+        <div className="max-w-5xl mx-auto">
+          <p className="text-[#c89b4a] text-xs tracking-[0.18em] uppercase mb-4">What's included</p>
+          <h2 className="text-[#0e1c2f] font-bold mb-4"
+            style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(26px, 3vw, 40px)' }}>
+            Personal tax services.
+          </h2>
+          <p className="text-[#5a6a7e] text-base max-w-lg mb-14 leading-relaxed">
+            For individuals with employment income, rental properties, sole proprietor income, investments, or a combination.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-px bg-black/[0.06] rounded overflow-hidden border border-black/[0.06]">
+            {services.map(({ icon: Icon, title, desc, price }) => (
+              <div key={title} className="bg-white p-10 flex flex-col">
+                <div className="w-12 h-12 bg-[#f5edd8] rounded flex items-center justify-center mb-6 shrink-0">
+                  <Icon className="w-5 h-5 text-[#c89b4a]" strokeWidth={1.5} />
+                </div>
+                <h3 className="text-[#0e1c2f] font-medium text-lg mb-3">{title}</h3>
+                <p className="text-[#5a6a7e] text-sm leading-relaxed flex-1 mb-6">{desc}</p>
+                <div className="pt-5 border-t border-black/[0.06]">
+                  <span className="text-[#c89b4a] font-medium text-sm">{price}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* WHAT YOU GET */}
+      <section className="py-24 px-6 lg:px-12 bg-[#0e1c2f]">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <p className="text-[#c89b4a] text-xs tracking-[0.18em] uppercase mb-4">Your portal includes</p>
+              <h2 className="text-white font-bold mb-6"
+                style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(24px, 3vw, 36px)' }}>
+                Everything in one place.<br />
+                <em className="text-[#c89b4a] font-normal italic">No email chaos.</em>
+              </h2>
+              <p className="text-white/50 text-base leading-relaxed mb-8">
+                Once you register, you get a private client portal where you can see your tax status,
+                upload documents, view your calculation, and track your return — from any device.
+              </p>
+              <PaymentButton defaultAmount={DEFAULT_AMOUNT_ZAR}
+                className="bg-[#c89b4a] hover:bg-[#e0b96a] text-[#0e1c2f] font-medium px-8 py-3.5 rounded text-sm transition-colors inline-block">
+                Get Access Now
+              </PaymentButton>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {included.map(item => (
+                <div key={item} className="flex items-start gap-3 bg-white/[0.05] rounded p-4">
+                  <CheckCircle className="w-4 h-4 text-[#c89b4a] shrink-0 mt-0.5" strokeWidth={1.5} />
+                  <span className="text-white/70 text-sm leading-snug">{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA STRIP */}
+      <section className="py-20 px-6 lg:px-12 bg-[#c89b4a]">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-[#0e1c2f] font-bold mb-4"
+            style={{ fontFamily: "'Playfair Display', serif", fontSize: 'clamp(24px, 3vw, 36px)' }}>
+            Tax season is now. Don't leave it late.
+          </h2>
+          <p className="text-[#0e1c2f]/60 mb-8 text-base">
+            SARS auto-assessments open July. Provisional tax due August. Get ahead of it.
+          </p>
+          <PaymentButton defaultAmount={DEFAULT_AMOUNT_ZAR}
+            className="bg-[#0e1c2f] hover:bg-[#162540] text-white font-medium px-10 py-4 rounded text-base transition-colors inline-block">
+            Pay & Register Now →
+          </PaymentButton>
+        </div>
+      </section>
+
+      {/* CONTACT */}
+      <section className="py-20 px-6 lg:px-12 bg-[#0e1c2f] border-t border-[#c89b4a]/10">
+        <div className="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div>
+            <img src="https://fintecgroup.co.za/wp-content/uploads/2026/05/FG_Logo_transparent.png"
+              alt="Fintec Group" className="h-10 w-auto mb-4 opacity-80" />
+            <p className="text-white/30 text-sm leading-relaxed">
+              Independent accounting and tax practice.<br />
+              Table View, Cape Town.
+            </p>
+          </div>
+          {[
+            { label: 'Email', val: 'rventer@fintecgroup.co.za', href: 'mailto:rventer@fintecgroup.co.za' },
+            { label: 'WhatsApp', val: '+27 64 584 3869', href: 'https://wa.me/27645843869' },
+          ].map(({ label, val, href }) => (
+            <div key={label}>
+              <p className="text-white/30 text-xs uppercase tracking-wider mb-2">{label}</p>
+              <a href={href} target="_blank" rel="noopener noreferrer"
+                className="text-[#c89b4a] hover:text-[#e0b96a] text-base transition-colors">
+                {val}
+              </a>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="bg-[#0e1c2f] border-t border-white/[0.06] px-6 lg:px-12 py-6">
+        <div className="max-w-5xl mx-auto flex flex-wrap justify-between gap-4">
+          <p className="text-white/20 text-xs">© 2025 Fintec Group (Pty) Ltd. SAIT 60630773 · SARS PR-0101146 · CIBA CIBA202110-2465</p>
+          <p className="text-white/20 text-xs">
+            <a href="https://fintecgroup.co.za/privacy-policy" className="hover:text-white/40">Privacy Policy</a>
+            {' · '}
+            <a href="https://fintecgroup.co.za" className="hover:text-white/40">fintecgroup.co.za</a>
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+      </footer>
+
+      {/* WHATSAPP FLOAT */}
+      <a href="https://wa.me/27645843869" target="_blank" rel="noopener noreferrer"
+        className="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110"
+        style={{ background: '#25D366' }}>
+        <svg viewBox="0 0 24 24" fill="white" width="28" height="28">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.114.554 4.1 1.522 5.828L0 24l6.341-1.499A11.935 11.935 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.818 9.818 0 01-5.006-1.371l-.36-.214-3.727.881.936-3.618-.235-.372A9.818 9.818 0 012.182 12C2.182 6.58 6.58 2.182 12 2.182c5.421 0 9.818 4.398 9.818 9.818 0 5.421-4.397 9.818-9.818 9.818z"/>
+        </svg>
+      </a>
     </div>
-  );
+  )
 }
