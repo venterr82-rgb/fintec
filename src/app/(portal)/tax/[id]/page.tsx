@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ArrowLeft, CheckCircle, Clock, XCircle } from 'lucide-react'
 import TaxDocumentManager from '@/components/tax/TaxDocumentManager'
 import TaxFiguresForm from '@/components/tax/TaxFiguresForm'
+import TaxIncomeLinesEditor from '@/components/tax/TaxIncomeLinesEditor'
 
 const STATUS_STEPS = [
   { key: 'awaiting_docs', label: 'Awaiting docs' },
@@ -37,6 +38,11 @@ export default async function TaxCaseDetailPage({ params }: { params: { id: stri
     .eq('person_id', taxCase.person_id)
     .order('tax_year', { ascending: false })
     .limit(5)
+
+  const [{ data: incomeLines }, { data: rebates }] = await Promise.all([
+    supabase.from('tax_income_lines').select('*').eq('tax_case_id', params.id).order('sort_order'),
+    supabase.from('tax_rebates').select('*').eq('tax_case_id', params.id).order('sort_order'),
+  ])
 
   const currentStep = STATUS_STEPS.findIndex(s => s.key === taxCase.status)
   const outstanding = documents?.filter((d: any) => d.status === 'outstanding').length ?? 0
@@ -94,6 +100,12 @@ export default async function TaxCaseDetailPage({ params }: { params: { id: stri
             </div>
             <TaxDocumentManager taxCaseId={params.id} documents={documents ?? []} />
           </div>
+
+          <TaxIncomeLinesEditor
+            taxCaseId={params.id}
+            initialLines={incomeLines ?? []}
+            initialRebates={rebates ?? []}
+          />
         </div>
 
         {/* Right: figures + history */}

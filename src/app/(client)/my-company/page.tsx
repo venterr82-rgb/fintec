@@ -1,8 +1,8 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server'
-import { FileText, CheckCircle, Clock, AlertCircle, Download, Upload, MessageSquare } from 'lucide-react'
+import { CheckCircle, Clock, AlertCircle, MessageSquare } from 'lucide-react'
 import DocumentDownload from '@/components/documents/DocumentDownload'
 import ClientUploadDoc from '@/components/tax/ClientUploadDoc'
-import Link from 'next/link'
+import IncomeTaxHistoryChart from '@/components/tax/IncomeTaxHistoryChart'
 import { siteConfig } from '@/lib/config/site'
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
@@ -14,6 +14,8 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> =
   filed:             { label: 'Filed with SARS', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
   complete:          { label: 'Complete', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
 }
+
+function n(v: any) { return v === null || v === undefined ? 0 : Number(v) }
 
 export default async function ClientDashboardPage() {
   const supabase = await createServerSupabaseClient()
@@ -33,7 +35,6 @@ export default async function ClientDashboardPage() {
     )
   }
 
-  // Get latest tax case
   const { data: taxCases } = await supabase
     .from('tax_cases')
     .select('*')
@@ -43,28 +44,40 @@ export default async function ClientDashboardPage() {
 
   const latestCase = taxCases?.[0]
 
-  // Get documents for latest case
-  const { data: documents } = latestCase ? await supabase
-    .from('tax_documents')
-    .select('*')
-    .eq('tax_case_id', latestCase.id)
-    .order('status')
-    : { data: [] }
-
-  // Get income history
-  const { data: history } = await supabase
-    .from('tax_income_history')
-    .select('*')
-    .eq('person_id', userData.person_id)
-    .order('tax_year', { ascending: false })
-    .limit(5)
+  const [{ data: documents }, { data: history }, { data: incomeLines }, { data: rebates }] = await Promise.all([
+    latestCase ? supabase.from('tax_documents').select('*').eq('tax_case_id', latestCase.id).order('status') : Promise.resolve({ data: [] as any[] }),
+    supabase.from('tax_income_history').select('*').eq('person_id', userData.person_id).order('tax_year', { ascending: false }).limit(4),
+    latestCase ? supabase.from('tax_income_lines').select('*').eq('tax_case_id', latestCase.id).order('sort_order') : Promise.resolve({ data: [] as any[] }),
+    latestCase ? supabase.from('tax_rebates').select('*').eq('tax_case_id', latestCase.id).order('sort_order') : Promise.resolve({ data: [] as any[] }),
+  ])
 
   const outstanding = documents?.filter(d => d.status === 'outstanding') ?? []
   const received = documents?.filter(d => ['uploaded','approved'].includes(d.status)) ?? []
   const s = latestCase ? (STATUS_MAP[latestCase.status] ?? STATUS_MAP.awaiting_docs) : null
 
+  const incomeTotal = (incomeLines ?? []).filter(l => l.line_type === 'income').reduce((sum, l) => sum + n(l.taxable_amount), 0)
+  const deductionLines = (incomeLines ?? []).filter(l => l.line_type === 'deduction')
+  const rebateTotal = (rebates ?? []).reduce((sum, r) => sum + n(r.amount), 0)
+  const taxOnTaxableIncome = latestCase ? n(latestCase.tax_liability) - rebateTotal : 0
+
+  // Merge tax_income_history with the current case's own figures for the
+  // 5-year table/chart, so this year shows even before history is imported.
+  const historyByYear = new Map<number, { tax_year: number; taxable_income: number; tax_liability: number; effective_rate: number | null }>()
+  ;(history ?? []).forEach((h: any) => historyByYear.set(h.tax_year, {
+    tax_year: h.tax_year, taxable_income: n(h.taxable_income), tax_liability: n(h.tax_liability), effective_rate: h.effective_rate,
+  }))
+  if (latestCase?.taxable_income) {
+    historyByYear.set(latestCase.tax_year, {
+      tax_year: latestCase.tax_year,
+      taxable_income: n(latestCase.taxable_income),
+      tax_liability: n(latestCase.tax_liability),
+      effective_rate: latestCase.effective_rate,
+    })
+  }
+  const fiveYear = [...historyByYear.values()].sort((a, b) => b.tax_year - a.tax_year).slice(0, 5)
+
   return (
-    <div className="max-w-3xl space-y-5">
+    <div className="max-w-4xl space-y-5">
       {/* Welcome + status */}
       <div>
         <h2 className="text-2xl font-bold text-slate-800">Welcome, {userData.full_name?.split(' ')[0] ?? 'there'}</h2>
@@ -92,25 +105,28 @@ export default async function ClientDashboardPage() {
       {latestCase && (
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
           <div className="stat-card">
-            <p className="text-xs text-slate-500">Outstanding docs</p>
-            <p className={`text-2xl font-bold ${outstanding.length > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>{outstanding.length}</p>
+            <p className="text-xs text-slate-500">Taxable Income</p>
+            <p className="text-xl font-bold text-slate-800">{latestCase.taxable_income ? `R ${Number(latestCase.taxable_income).toLocaleString()}` : '—'}</p>
           </div>
           <div className="stat-card">
-            <p className="text-xs text-slate-500">Received</p>
-            <p className="text-2xl font-bold text-slate-800">{received.length}</p>
+            <p className="text-xs text-slate-500">Tax Payable</p>
+            <p className="text-xl font-bold text-slate-800">{latestCase.tax_liability ? `R ${Number(latestCase.tax_liability).toLocaleString()}` : '—'}</p>
           </div>
-          {latestCase.taxable_income && (
+          <div className="stat-card">
+            <p className="text-xs text-slate-500">Effective Rate</p>
+            <p className="text-xl font-bold text-slate-800">{latestCase.effective_rate ? `${Number(latestCase.effective_rate).toFixed(1)}%` : '—'}</p>
+          </div>
+          {latestCase.result_amount !== null ? (
             <div className="stat-card">
-              <p className="text-xs text-slate-500">Taxable income</p>
-              <p className="text-xl font-bold text-slate-800">R {Number(latestCase.taxable_income).toLocaleString()}</p>
-            </div>
-          )}
-          {latestCase.result_amount !== null && (
-            <div className="stat-card">
-              <p className="text-xs text-slate-500">{Number(latestCase.result_amount) >= 0 ? 'Refund due' : 'Amount owing'}</p>
+              <p className="text-xs text-slate-500">{Number(latestCase.result_amount) >= 0 ? 'Refund' : 'Owing'}</p>
               <p className={`text-xl font-bold ${Number(latestCase.result_amount) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                 R {Math.abs(Number(latestCase.result_amount)).toLocaleString()}
               </p>
+            </div>
+          ) : (
+            <div className="stat-card">
+              <p className="text-xs text-slate-500">Outstanding docs</p>
+              <p className={`text-xl font-bold ${outstanding.length > 0 ? 'text-amber-600' : 'text-emerald-600'}`}>{outstanding.length}</p>
             </div>
           )}
         </div>
@@ -119,8 +135,9 @@ export default async function ClientDashboardPage() {
       {/* Document checklist */}
       {documents && documents.length > 0 && (
         <div className="card">
-          <div className="px-5 py-4 border-b border-slate-100">
+          <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <h3 className="section-title">Document Checklist — {latestCase?.tax_year}</h3>
+            <span className="text-xs text-slate-500">{received.length}/{documents.filter(d => d.status !== 'not_applicable').length} received</span>
           </div>
           <div className="divide-y divide-slate-50">
             {documents.filter(d => d.status !== 'not_applicable').map((doc: any) => (
@@ -137,7 +154,7 @@ export default async function ClientDashboardPage() {
                     )}
                   </div>
                 </div>
-                <div className="shrink-0">
+                <div className="shrink-0 flex items-center gap-2">
                   {doc.status === 'outstanding' && (
                     <ClientUploadDoc docId={doc.id} taxCaseId={latestCase?.id} />
                   )}
@@ -151,23 +168,87 @@ export default async function ClientDashboardPage() {
         </div>
       )}
 
-      {/* Tax calculation summary */}
+      {/* Income breakdown */}
+      {incomeLines && incomeLines.length > 0 && (
+        <div className="card">
+          <div className="px-5 py-4 border-b border-slate-100">
+            <h3 className="section-title">Income Breakdown</h3>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead className="bg-slate-50">
+                <tr>
+                  <th className="th">Code</th>
+                  <th className="th">Description</th>
+                  <th className="th text-right">Gross</th>
+                  <th className="th text-right">Exempt/Expenses</th>
+                  <th className="th text-right">Taxable</th>
+                </tr>
+              </thead>
+              <tbody>
+                {incomeLines.filter(l => l.line_type === 'income').map((l: any) => (
+                  <tr key={l.id} className="border-t border-slate-50">
+                    <td className="td text-xs text-slate-500">{l.sars_code ?? '—'}</td>
+                    <td className="td">{l.description}</td>
+                    <td className="td text-right">{l.calculated ? Number(l.calculated).toLocaleString() : '—'}</td>
+                    <td className="td text-right">{l.exemption_expenses ? `(${Math.abs(Number(l.exemption_expenses)).toLocaleString()})` : '—'}</td>
+                    <td className="td text-right font-medium">{l.taxable_amount ? Number(l.taxable_amount).toLocaleString() : '—'}</td>
+                  </tr>
+                ))}
+                <tr className="border-t border-slate-200 font-semibold bg-slate-50">
+                  <td className="td" colSpan={4}>Total Income</td>
+                  <td className="td text-right">{incomeTotal.toLocaleString()}</td>
+                </tr>
+                {deductionLines.map((l: any) => (
+                  <tr key={l.id} className="border-t border-slate-50">
+                    <td className="td text-xs text-slate-500">{l.sars_code ?? '—'}</td>
+                    <td className="td">{l.description}</td>
+                    <td className="td text-right">—</td>
+                    <td className="td text-right">{l.exemption_expenses ? `(${Math.abs(Number(l.exemption_expenses)).toLocaleString()})` : '—'}</td>
+                    <td className="td text-right font-medium">{l.taxable_amount ? `(${Math.abs(Number(l.taxable_amount)).toLocaleString()})` : '—'}</td>
+                  </tr>
+                ))}
+                <tr className="border-t border-slate-200 font-bold">
+                  <td className="td" colSpan={4}>TAXABLE INCOME</td>
+                  <td className="td text-right">{latestCase?.taxable_income ? Number(latestCase.taxable_income).toLocaleString() : '—'}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Tax calculation */}
       {latestCase?.taxable_income && (
         <div className="card p-5">
-          <h3 className="section-title mb-4">Tax Calculation Summary — {latestCase.tax_year}</h3>
+          <h3 className="section-title mb-4">Tax Calculation</h3>
           <div className="space-y-2 text-sm">
-            {[
-              ['Taxable income', latestCase.taxable_income, false],
-              ['Tax liability', latestCase.tax_liability, false],
-              ['PAYE deducted', latestCase.paye_credits, true],
-              ['Provisional tax paid (P1)', latestCase.prov_tax_p1, true],
-              ['Provisional tax paid (P2)', latestCase.prov_tax_p2, true],
-            ].filter(([,v]) => v !== null && v !== undefined).map(([label, val, neg]) => (
-              <div key={label as string} className="flex justify-between border-b border-slate-50 pb-2">
-                <span className="text-slate-500">{label as string}</span>
-                <span className="font-medium">{neg ? '(' : ''}R {Number(val).toLocaleString()}{neg ? ')' : ''}</span>
+            <div className="flex justify-between border-b border-slate-50 pb-2">
+              <span className="text-slate-500">Tax on taxable income</span>
+              <span className="font-medium">R {taxOnTaxableIncome.toLocaleString()}</span>
+            </div>
+            {rebates?.map((r: any) => (
+              <div key={r.id} className="flex justify-between border-b border-slate-50 pb-2">
+                <span className="text-slate-500">{r.description}</span>
+                <span className="font-medium">{n(r.amount) < 0 ? `(R ${Math.abs(n(r.amount)).toLocaleString()})` : '—'}</span>
               </div>
             ))}
+            <div className="flex justify-between border-b border-slate-50 pb-2 font-semibold">
+              <span>Tax Payable</span>
+              <span>R {Number(latestCase.tax_liability ?? 0).toLocaleString()}</span>
+            </div>
+            {latestCase.prov_tax_p1 && (
+              <div className="flex justify-between border-b border-slate-50 pb-2">
+                <span className="text-slate-500">Provisional tax P1</span>
+                <span className="font-medium">(R {Number(latestCase.prov_tax_p1).toLocaleString()})</span>
+              </div>
+            )}
+            {latestCase.prov_tax_p2 && (
+              <div className="flex justify-between border-b border-slate-50 pb-2">
+                <span className="text-slate-500">Provisional tax P2</span>
+                <span className="font-medium">(R {Number(latestCase.prov_tax_p2).toLocaleString()})</span>
+              </div>
+            )}
             {latestCase.result_amount !== null && (
               <div className={`flex justify-between pt-2 font-bold text-base ${Number(latestCase.result_amount) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                 <span>{Number(latestCase.result_amount) >= 0 ? '✓ Refund due to you' : '⚠ Amount owing to SARS'}</span>
@@ -175,18 +256,6 @@ export default async function ClientDashboardPage() {
               </div>
             )}
           </div>
-
-          {/* RA suggestion */}
-          {latestCase.suggested_ra_monthly && (
-            <div className="mt-4 pt-4 border-t border-slate-100 bg-navy-50 rounded-lg p-4">
-              <p className="text-sm font-semibold text-navy-700 mb-1">RA Contribution Recommendation</p>
-              <p className="text-xs text-slate-600">
-                To maximise your tax deduction for next year, consider increasing your monthly RA contribution
-                to <strong>R {Number(latestCase.suggested_ra_monthly).toLocaleString()}/month</strong>.
-                {latestCase.current_ra_monthly && ` Your current contribution is R ${Number(latestCase.current_ra_monthly).toLocaleString()}/month.`}
-              </p>
-            </div>
-          )}
         </div>
       )}
 
@@ -211,11 +280,45 @@ export default async function ClientDashboardPage() {
         </div>
       )}
 
-      {/* 5-year history */}
-      {history && history.length > 0 && (
+      {/* RA planning */}
+      {latestCase?.taxable_income && latestCase.has_ra && (
         <div className="card p-5">
-          <h3 className="section-title mb-3">Income & Tax History</h3>
-          <table className="w-full text-sm">
+          <h3 className="section-title mb-3">RA Planning</h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-slate-500">Max deductible (27.5%)</span>
+              <span className="font-medium">R {Math.min(Number(latestCase.taxable_income) * 0.275, 350000).toLocaleString()}</span>
+            </div>
+            {latestCase.ra_deduction && (
+              <div className="flex justify-between">
+                <span className="text-slate-500">RA deducted this year</span>
+                <span className="font-medium">R {Number(latestCase.ra_deduction).toLocaleString()}</span>
+              </div>
+            )}
+            {latestCase.current_ra_monthly && (
+              <div className="flex justify-between">
+                <span className="text-slate-500">Current RA contribution</span>
+                <span className="font-medium">R {Number(latestCase.current_ra_monthly).toLocaleString()}/mo</span>
+              </div>
+            )}
+            {latestCase.ra_deduction && Number(latestCase.ra_deduction) > 350000 && (
+              <p className="text-xs text-amber-600 font-medium">⚠ You are over the annual cap of R350,000</p>
+            )}
+            {latestCase.suggested_ra_monthly && (
+              <div className="flex justify-between border-t border-slate-100 pt-2 text-navy-700 font-semibold">
+                <span>Suggested monthly</span>
+                <span>R {Number(latestCase.suggested_ra_monthly).toLocaleString()}/mo</span>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* 5-year history */}
+      {fiveYear.length > 0 && (
+        <div className="card p-5">
+          <h3 className="section-title mb-3">5-Year Income & Tax History</h3>
+          <table className="w-full text-sm mb-5">
             <thead><tr>
               <th className="text-left text-xs text-slate-400 font-medium pb-2">Year</th>
               <th className="text-right text-xs text-slate-400 font-medium pb-2">Taxable income</th>
@@ -223,16 +326,19 @@ export default async function ClientDashboardPage() {
               <th className="text-right text-xs text-slate-400 font-medium pb-2">Rate</th>
             </tr></thead>
             <tbody>
-              {history.map((h: any) => (
+              {fiveYear.map(h => (
                 <tr key={h.tax_year} className="border-t border-slate-50">
-                  <td className="py-2 font-semibold text-slate-700">{h.tax_year}</td>
-                  <td className="py-2 text-right text-slate-600">R {Number(h.taxable_income).toLocaleString()}</td>
-                  <td className="py-2 text-right text-slate-600">R {Number(h.tax_liability).toLocaleString()}</td>
+                  <td className="py-2 font-semibold text-slate-700">
+                    {h.tax_year}{latestCase && h.tax_year === latestCase.tax_year && <span className="text-navy-500 font-normal text-xs"> ← current</span>}
+                  </td>
+                  <td className="py-2 text-right text-slate-600">R {h.taxable_income.toLocaleString()}</td>
+                  <td className="py-2 text-right text-slate-600">R {h.tax_liability.toLocaleString()}</td>
                   <td className="py-2 text-right text-slate-400">{h.effective_rate ? `${Number(h.effective_rate).toFixed(1)}%` : '—'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
+          <IncomeTaxHistoryChart data={fiveYear} />
         </div>
       )}
     </div>
