@@ -1,7 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2 } from 'lucide-react'
+import { Loader2, Plus, X } from 'lucide-react'
 
 function Field({ label, children, hint }: { label: string; children: React.ReactNode; hint?: string }) {
   return (
@@ -30,6 +30,45 @@ function Toggle({ label, hint, checked, onChange }: { label: string; hint?: stri
   )
 }
 
+function NameListEditor({ label, itemLabel, names, onChange }: {
+  label: string
+  itemLabel: string
+  names: string[]
+  onChange: (names: string[]) => void
+}) {
+  function updateName(i: number, value: string) {
+    onChange(names.map((n, idx) => idx === i ? value : n))
+  }
+  function addName() {
+    onChange([...names, ''])
+  }
+  function removeName(i: number) {
+    onChange(names.filter((_, idx) => idx !== i))
+  }
+
+  return (
+    <div className="md:col-span-2 pl-4 border-l-2 border-navy-100 space-y-2">
+      <p className="text-xs font-medium text-slate-500">{label}</p>
+      {names.map((name, i) => (
+        <div key={i} className="flex items-center gap-2">
+          <input
+            className="input py-1.5 text-sm"
+            value={name}
+            onChange={e => updateName(i, e.target.value)}
+            placeholder={`${itemLabel} ${i + 1}`}
+          />
+          <button type="button" onClick={() => removeName(i)} className="text-slate-400 hover:text-red-500 shrink-0">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+      ))}
+      <button type="button" onClick={addName} className="btn-secondary text-xs">
+        <Plus className="w-3 h-3" /> Add {itemLabel.toLowerCase()}
+      </button>
+    </div>
+  )
+}
+
 const CURRENT_YEAR = new Date().getMonth() >= 2 ? new Date().getFullYear() + 1 : new Date().getFullYear()
 
 export default function TaxCaseForm({ people, taxCase }: { people: any[]; taxCase?: any }) {
@@ -51,16 +90,28 @@ export default function TaxCaseForm({ people, taxCase }: { people: any[]; taxCas
     has_pension: taxCase?.has_pension ?? false,
     status: taxCase?.status ?? 'awaiting_docs',
     accountant_note: taxCase?.accountant_note ?? '',
+    rental_properties: (taxCase?.rental_properties as string[] | undefined) ?? [],
+    sole_prop_businesses: (taxCase?.sole_prop_businesses as string[] | undefined) ?? [],
+    airbnb_properties: (taxCase?.airbnb_properties as string[] | undefined) ?? [],
+    partnership_names: (taxCase?.partnership_names as string[] | undefined) ?? [],
   })
   const set = (k: string) => (e: React.ChangeEvent<any>) => setForm(f => ({ ...f, [k]: e.target.value }))
   const tog = (k: string) => (v: boolean) => setForm(f => ({ ...f, [k]: v }))
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setLoading(true); setError('')
+    // Drop blank entries so an empty "Add" click doesn't create a nameless slot.
+    const payload = {
+      ...form,
+      rental_properties: form.rental_properties.map(n => n.trim()).filter(Boolean),
+      sole_prop_businesses: form.sole_prop_businesses.map(n => n.trim()).filter(Boolean),
+      airbnb_properties: form.airbnb_properties.map(n => n.trim()).filter(Boolean),
+      partnership_names: form.partnership_names.map(n => n.trim()).filter(Boolean),
+    }
     const res = await fetch('/api/tax-cases', {
       method: taxCase?.id ? 'PUT' : 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(taxCase?.id ? { ...form, id: taxCase.id } : form),
+      body: JSON.stringify(taxCase?.id ? { ...payload, id: taxCase.id } : payload),
     })
     const json = await res.json()
     if (!res.ok) { setError(json.error ?? 'Failed to save'); setLoading(false); return }
@@ -110,10 +161,35 @@ export default function TaxCaseForm({ people, taxCase }: { people: any[]; taxCas
         <p className="text-xs text-slate-500 mb-5">Select all income types that apply — this auto-generates the required document checklist.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <Toggle label="Employment income" hint="IRP5 / IT3(a) from employer" checked={form.has_employment} onChange={tog('has_employment')} />
+
           <Toggle label="Rental income" hint="Residential or commercial property" checked={form.has_rental} onChange={tog('has_rental')} />
+          {form.has_rental && (
+            <NameListEditor label="Rental properties" itemLabel="Rental property"
+              names={form.rental_properties}
+              onChange={names => setForm(f => ({ ...f, rental_properties: names }))} />
+          )}
+
           <Toggle label="Sole proprietor / business" hint="Trading as, consulting, practice" checked={form.has_sole_prop} onChange={tog('has_sole_prop')} />
+          {form.has_sole_prop && (
+            <NameListEditor label="Businesses" itemLabel="Business"
+              names={form.sole_prop_businesses}
+              onChange={names => setForm(f => ({ ...f, sole_prop_businesses: names }))} />
+          )}
+
           <Toggle label="Airbnb / short-term rental" hint="Platform income + property expenses" checked={form.has_airbnb} onChange={tog('has_airbnb')} />
+          {form.has_airbnb && (
+            <NameListEditor label="Airbnb properties" itemLabel="Airbnb property"
+              names={form.airbnb_properties}
+              onChange={names => setForm(f => ({ ...f, airbnb_properties: names }))} />
+          )}
+
           <Toggle label="Partnership income" hint="Profit/loss allocation from partnership" checked={form.has_partnership} onChange={tog('has_partnership')} />
+          {form.has_partnership && (
+            <NameListEditor label="Partnerships" itemLabel="Partnership"
+              names={form.partnership_names}
+              onChange={names => setForm(f => ({ ...f, partnership_names: names }))} />
+          )}
+
           <Toggle label="Investments" hint="Interest, dividends, capital gains" checked={form.has_investments} onChange={tog('has_investments')} />
           <Toggle label="Medical aid" hint="Medical scheme tax credit" checked={form.has_medical} onChange={tog('has_medical')} />
           <Toggle label="Retirement annuity" hint="RA contributions deduction" checked={form.has_ra} onChange={tog('has_ra')} />

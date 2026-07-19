@@ -82,8 +82,12 @@ export default async function ClientDashboardPage() {
     latestCase ? supabase.from('tax_rebates').select('*').eq('tax_case_id', latestCase.id).order('sort_order') : Promise.resolve({ data: [] as any[] }),
   ])
 
-  const outstanding = documents?.filter(d => d.status === 'outstanding') ?? []
-  const received = documents?.filter(d => ['uploaded','approved'].includes(d.status)) ?? []
+  // Accountant-managed slots (per-property rental/business/Airbnb/partnership
+  // documents) are uploaded by the accountant directly, not the client —
+  // hide them from the client-facing checklist entirely.
+  const clientDocuments = (documents ?? []).filter(d => d.uploaded_by_role !== 'accountant')
+  const outstanding = clientDocuments.filter(d => d.status === 'outstanding')
+  const received = clientDocuments.filter(d => ['uploaded','approved'].includes(d.status))
   const s = latestCase ? (STATUS_MAP[latestCase.status] ?? STATUS_MAP.awaiting_docs) : null
 
   const incomeTotal = (incomeLines ?? []).filter(l => l.line_type === 'income').reduce((sum, l) => sum + n(l.taxable_amount), 0)
@@ -164,14 +168,14 @@ export default async function ClientDashboardPage() {
       )}
 
       {/* Document checklist */}
-      {documents && documents.length > 0 && (
+      {clientDocuments.length > 0 && (
         <div className="card">
           <div className="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
             <h3 className="section-title">Document Checklist — {latestCase?.tax_year}</h3>
-            <span className="text-xs text-slate-500">{received.length}/{documents.filter(d => d.status !== 'not_applicable').length} received</span>
+            <span className="text-xs text-slate-500">{received.length}/{clientDocuments.filter(d => d.status !== 'not_applicable').length} received</span>
           </div>
           <div className="divide-y divide-slate-50">
-            {documents.filter(d => d.status !== 'not_applicable').map((doc: any) => (
+            {clientDocuments.filter(d => d.status !== 'not_applicable').map((doc: any) => (
               <div key={doc.id} className="flex items-center justify-between px-5 py-3.5">
                 <div className="flex items-center gap-3">
                   {doc.status === 'outstanding'
@@ -226,7 +230,9 @@ export default async function ClientDashboardPage() {
                 {incomeLines.filter(l => l.line_type === 'income').map((l: any) => (
                   <tr key={l.id} className="bg-emerald-50 border-l-4 border-emerald-400 text-emerald-900">
                     <td className="td text-xs">{l.sars_code ?? '—'}</td>
-                    <td className="td">{l.description} <Badge color="emerald">Income</Badge></td>
+                    <td className="td">
+                      {l.description}{l.entity_name && <span className="text-emerald-700"> — {l.entity_name}</span>} <Badge color="emerald">Income</Badge>
+                    </td>
                     <td className="td text-right">{l.calculated ? Number(l.calculated).toLocaleString() : '—'}</td>
                     <td className="td text-right text-amber-700 font-medium">{l.exemption_expenses ? `(${Math.abs(Number(l.exemption_expenses)).toLocaleString()})` : '—'}</td>
                     <td className="td text-right font-medium">{l.taxable_amount ? Number(l.taxable_amount).toLocaleString() : '—'}</td>
@@ -242,7 +248,9 @@ export default async function ClientDashboardPage() {
                 {deductionLines.map((l: any) => (
                   <tr key={l.id} className="bg-blue-50 border-l-4 border-blue-500 text-blue-900">
                     <td className="td text-xs">{l.sars_code ?? '—'}</td>
-                    <td className="td">{l.description} <Badge color="blue">Tax Saving</Badge></td>
+                    <td className="td">
+                      {l.description}{l.entity_name && <span className="text-blue-700"> — {l.entity_name}</span>} <Badge color="blue">Tax Saving</Badge>
+                    </td>
                     <td className="td text-right">—</td>
                     <td className="td text-right">{l.exemption_expenses ? `(${Math.abs(Number(l.exemption_expenses)).toLocaleString()})` : '—'}</td>
                     <td className="td text-right font-medium">{l.taxable_amount ? `(${Math.abs(Number(l.taxable_amount)).toLocaleString()})` : '—'}</td>

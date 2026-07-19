@@ -8,6 +8,7 @@ type Line = {
   id?: string
   sars_code: string
   description: string
+  entity_name: string
   calculated: number | string
   exemption_expenses: number | string
   taxable_amount: number | string
@@ -44,7 +45,7 @@ export default function TaxIncomeLinesEditor({ taxCaseId, initialLines, initialR
 
   function addLine() {
     setLines(prev => [...prev, {
-      sars_code: '', description: '', calculated: 0, exemption_expenses: 0, taxable_amount: 0, line_type: 'income',
+      sars_code: '', description: '', entity_name: '', calculated: 0, exemption_expenses: 0, taxable_amount: 0, line_type: 'income',
     }])
   }
 
@@ -56,6 +57,7 @@ export default function TaxIncomeLinesEditor({ taxCaseId, initialLines, initialR
       sort_order: i,
       sars_code: line.sars_code || null,
       description: line.description || null,
+      entity_name: line.entity_name || null,
       calculated: num(line.calculated),
       exemption_expenses: num(line.exemption_expenses),
       taxable_amount: num(line.taxable_amount),
@@ -127,6 +129,7 @@ export default function TaxIncomeLinesEditor({ taxCaseId, initialLines, initialR
               <tr>
                 <th className="th">Code</th>
                 <th className="th">Description</th>
+                <th className="th">Entity</th>
                 <th className="th">Gross</th>
                 <th className="th">Exempt/Expenses</th>
                 <th className="th">Taxable</th>
@@ -148,6 +151,7 @@ export default function TaxIncomeLinesEditor({ taxCaseId, initialLines, initialR
                     />
                   </td>
                   <td className="td"><input className="input py-1 text-xs min-w-[180px]" value={line.description} onChange={e => updateLine(i, { description: e.target.value })} onBlur={() => saveLine(i)} /></td>
+                  <td className="td"><input className="input py-1 text-xs min-w-[140px]" value={line.entity_name} onChange={e => updateLine(i, { entity_name: e.target.value })} onBlur={() => saveLine(i)} placeholder="e.g. Mooi Nooi" /></td>
                   <td className="td"><input type="number" className="input py-1 text-xs w-28" value={line.calculated} onChange={e => updateLine(i, { calculated: e.target.value })} onBlur={() => saveLine(i)} /></td>
                   <td className="td"><input type="number" className="input py-1 text-xs w-28" value={line.exemption_expenses} onChange={e => updateLine(i, { exemption_expenses: e.target.value })} onBlur={() => saveLine(i)} /></td>
                   <td className="td"><input type="number" className="input py-1 text-xs w-28" value={line.taxable_amount} onChange={e => updateLine(i, { taxable_amount: e.target.value })} onBlur={() => saveLine(i)} /></td>
@@ -165,12 +169,12 @@ export default function TaxIncomeLinesEditor({ taxCaseId, initialLines, initialR
                 </tr>
               ))}
               {lines.length === 0 && (
-                <tr><td colSpan={7} className="td text-center py-8 text-slate-400">No income lines yet.</td></tr>
+                <tr><td colSpan={8} className="td text-center py-8 text-slate-400">No income lines yet.</td></tr>
               )}
             </tbody>
             <tfoot>
               <tr className="border-t border-slate-200 font-semibold">
-                <td className="td" colSpan={4}>TAXABLE INCOME (sum of lines above)</td>
+                <td className="td" colSpan={5}>TAXABLE INCOME (sum of lines above)</td>
                 <td className="td">R {totalTaxable.toLocaleString()}</td>
                 <td className="td" colSpan={2}></td>
               </tr>

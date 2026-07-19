@@ -67,7 +67,12 @@ export default function TaxDocumentManager({ taxCaseId, documents }: { taxCaseId
               <div className="flex items-center gap-3">
                 {STATUS_ICON[doc.status]}
                 <div>
-                  <p className="text-sm font-medium text-slate-800">{doc.label}</p>
+                  <p className="text-sm font-medium text-slate-800 flex items-center gap-1.5">
+                    {doc.label}
+                    {doc.uploaded_by_role === 'accountant' && (
+                      <span className="text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded bg-navy-100 text-navy-700">Accountant</span>
+                    )}
+                  </p>
                   {doc.description && <p className="text-xs text-slate-400">{doc.description}</p>}
                 </div>
               </div>
