@@ -28,7 +28,7 @@ export async function POST(request: NextRequest) {
 
   const { data: payment } = await supabase
     .from('verified_payments')
-    .select('id')
+    .select('id, tier_name')
     .eq('yoco_payment_id', token)
     .eq('used', false)
     .maybeSingle()
@@ -86,6 +86,7 @@ export async function POST(request: NextRequest) {
     email: email.toLowerCase().trim(),
     phone: phone?.trim() || null,
     has_portal_access: true,
+    tier: payment.tier_name ?? null,
   }).select().single()
 
   // Link the person to the user

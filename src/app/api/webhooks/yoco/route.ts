@@ -83,11 +83,12 @@ export async function POST(request: NextRequest) {
   let tierName: string | null = null
   let product = 'tax_service'
   let leadId: string | null = null
+  let upgradePersonId: string | null = null
 
   if (orderId) {
     const { data: pending } = await supabase
       .from('pending_checkouts')
-      .select('email, amount, tier_name, product, lead_id')
+      .select('email, amount, tier_name, product, lead_id, person_id')
       .eq('checkout_id', orderId)
       .maybeSingle()
 
@@ -97,9 +98,21 @@ export async function POST(request: NextRequest) {
       tierName = pending.tier_name
       product = pending.product ?? 'tax_service'
       leadId = pending.lead_id
+      upgradePersonId = pending.person_id
     } else {
       console.warn(`No pending_checkouts match for order_id ${orderId} — payment ${yocoPaymentId} recorded without email`)
     }
+  }
+
+  // Tier-upgrade flow: an already-registered, already-logged-in client
+  // paying the difference to unlock a higher tier's documents. Just bump
+  // their tier — no registration, no verified_payments row (that table
+  // gates self-registration, which doesn't apply to an existing client).
+  if (product === 'tier_upgrade') {
+    if (upgradePersonId && tierName) {
+      await supabase.from('people').update({ tier: tierName }).eq('id', upgradePersonId)
+    }
+    return NextResponse.json({ ok: true })
   }
 
   // Firm platform-setup-fee flow (B2B, sells the platform itself) — entirely
@@ -136,6 +149,7 @@ export async function POST(request: NextRequest) {
     email,
     amount,
     yoco_payment_id: yocoPaymentId,
+    tier_name: tierName,
   })
 
   // Ignore unique-violation (webhook retried for an already-recorded payment); surface other errors.

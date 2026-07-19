@@ -58,7 +58,7 @@ function RegisterForm() {
       body: (() => { const fd = new FormData(); fd.append('email', form.email); fd.append('password', form.password); return fd })(),
     })
     // login-action redirects — follow it
-    window.location.href = '/my-company'
+    window.location.href = '/onboarding'
   }
 
   const set = (k: string) => (e: React.ChangeEvent<HTMLInputElement>) =>

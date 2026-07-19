@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { Building2, AlertTriangle, Clock, CheckCircle2, ArrowRight } from 'lucide-react'
 import Link from 'next/link'
 import { format, differenceInDays } from 'date-fns'
+import SarsAuthorisationNotice from '@/components/onboarding/SarsAuthorisationNotice'
 
 function StatusBadge({ status, daysLeft }: { status: string; daysLeft?: number }) {
   if (status === 'submitted') return <span className="badge-green">Submitted</span>
@@ -36,6 +37,7 @@ export default async function DashboardPage() {
     upcomingResult,
     overdueResult,
     logsResult,
+    sarsPendingResult,
   ] = await Promise.allSettled([
     supabase.from('companies').select('*', { count: 'exact', head: true }),
     supabase.from('compliance_items')
@@ -52,12 +54,16 @@ export default async function DashboardPage() {
       .select('*, users(full_name)')
       .order('created_at', { ascending: false })
       .limit(8),
+    supabase.from('people')
+      .select('id, first_name, last_name, tax_number, sars_added_at')
+      .eq('sars_poa_status', 'awaiting_authorisation'),
   ])
 
   const companyCount = companiesResult.status === 'fulfilled' ? (companiesResult.value.count ?? 0) : 0
   const upcoming = upcomingResult.status === 'fulfilled' ? (upcomingResult.value.data ?? []) : []
   const overdueCount = overdueResult.status === 'fulfilled' ? (overdueResult.value.count ?? 0) : 0
   const recentLogs = logsResult.status === 'fulfilled' ? (logsResult.value.data ?? []) : []
+  const sarsPending = sarsPendingResult.status === 'fulfilled' ? (sarsPendingResult.value.data ?? []) : []
 
   const stats = [
     { label: 'Total Companies',  value: companyCount,      icon: Building2,    color: 'text-navy-700',    bg: 'bg-navy-50'    },
@@ -75,6 +81,8 @@ export default async function DashboardPage() {
         </div>
         <Link href="/companies/new" className="btn-primary">+ Add Company</Link>
       </div>
+
+      <SarsAuthorisationNotice people={sarsPending as any} />
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
