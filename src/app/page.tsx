@@ -146,8 +146,8 @@ export default function LandingPage() {
               </div>
             ))}
             <div className="bg-white p-10 flex flex-col">
-              <div className="w-12 h-12 bg-purple-100 rounded flex items-center justify-center mb-6 shrink-0">
-                <Layers className="w-5 h-5 text-purple-600" strokeWidth={1.5} />
+              <div className="w-12 h-12 bg-[#f5edd8] rounded flex items-center justify-center mb-6 shrink-0">
+                <Layers className="w-5 h-5 text-[#c89b4a]" strokeWidth={1.5} />
               </div>
               <h3 className="text-[#0e1c2f] font-medium text-lg mb-3">{siteConfig.complexProfileTier.name}</h3>
               <p className="text-[#5a6a7e] text-sm leading-relaxed mb-4">
@@ -156,15 +156,15 @@ export default function LandingPage() {
               <ul className="space-y-2 flex-1 mb-6">
                 {siteConfig.complexProfileTier.features.map(feature => (
                   <li key={feature} className="flex items-start gap-2 text-sm text-[#5a6a7e]">
-                    <CheckCircle className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" strokeWidth={1.5} />
+                    <CheckCircle className="w-4 h-4 text-[#c89b4a] shrink-0 mt-0.5" strokeWidth={1.5} />
                     {feature}
                   </li>
                 ))}
               </ul>
               <div className="pt-5 border-t border-black/[0.06] space-y-4">
-                <span className="text-purple-600 font-medium text-sm block">{siteConfig.complexProfileTier.price}</span>
+                <span className="text-[#c89b4a] font-medium text-sm block">{siteConfig.complexProfileTier.price}</span>
                 <a href={`mailto:${siteConfig.contact.email}?subject=${encodeURIComponent(siteConfig.complexProfileTier.subject)}`}
-                  className="w-full inline-flex justify-center items-center bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium px-5 py-2.5 rounded transition-colors">
+                  className="btn-primary w-full justify-center text-sm">
                   {siteConfig.complexProfileTier.buttonLabel}
                 </a>
               </div>
