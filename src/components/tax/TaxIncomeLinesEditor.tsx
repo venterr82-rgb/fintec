@@ -142,7 +142,7 @@ export default function TaxIncomeLinesEditor({ taxCaseId, initialLines, initialR
                 <tr key={line.id ?? i} className="border-t border-slate-50">
                   <td className="td">
                     <SarsCodeCombobox
-                      value={line.sars_code}
+                      value={line.sars_code ?? ''}
                       onSelect={(code, description) => {
                         const patch = { sars_code: code, description: line.description || description }
                         updateLine(i, patch)
@@ -150,8 +150,8 @@ export default function TaxIncomeLinesEditor({ taxCaseId, initialLines, initialR
                       }}
                     />
                   </td>
-                  <td className="td"><input className="input py-1 text-xs min-w-[180px]" value={line.description} onChange={e => updateLine(i, { description: e.target.value })} onBlur={() => saveLine(i)} /></td>
-                  <td className="td"><input className="input py-1 text-xs min-w-[140px]" value={line.entity_name} onChange={e => updateLine(i, { entity_name: e.target.value })} onBlur={() => saveLine(i)} placeholder="e.g. Mooi Nooi" /></td>
+                  <td className="td"><input className="input py-1 text-xs min-w-[180px]" value={line.description ?? ''} onChange={e => updateLine(i, { description: e.target.value })} onBlur={() => saveLine(i)} /></td>
+                  <td className="td"><input className="input py-1 text-xs min-w-[140px]" value={line.entity_name ?? ''} onChange={e => updateLine(i, { entity_name: e.target.value })} onBlur={() => saveLine(i)} placeholder="e.g. Mooi Nooi" /></td>
                   <td className="td"><input type="number" className="input py-1 text-xs w-28" value={line.calculated} onChange={e => updateLine(i, { calculated: e.target.value })} onBlur={() => saveLine(i)} /></td>
                   <td className="td"><input type="number" className="input py-1 text-xs w-28" value={line.exemption_expenses} onChange={e => updateLine(i, { exemption_expenses: e.target.value })} onBlur={() => saveLine(i)} /></td>
                   <td className="td"><input type="number" className="input py-1 text-xs w-28" value={line.taxable_amount} onChange={e => updateLine(i, { taxable_amount: e.target.value })} onBlur={() => saveLine(i)} /></td>

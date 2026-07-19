@@ -7,15 +7,15 @@ type SarsCode = { code: string; description: string; category: string }
 let cachedCodes: SarsCode[] | null = null
 
 export default function SarsCodeCombobox({ value, onSelect }: {
-  value: string
+  value: string | null | undefined
   onSelect: (code: string, description: string) => void
 }) {
   const [codes, setCodes] = useState<SarsCode[]>(cachedCodes ?? [])
-  const [query, setQuery] = useState(value)
+  const [query, setQuery] = useState(value ?? '')
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => { setQuery(value) }, [value])
+  useEffect(() => { setQuery(value ?? '') }, [value])
 
   useEffect(() => {
     if (cachedCodes) return
