@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LayoutDashboard, FolderOpen, Calendar, Upload, LogOut } from 'lucide-react'
+import { LayoutDashboard, FolderOpen, Calendar, Upload, Calculator, LogOut } from 'lucide-react'
 import clsx from 'clsx'
 import { siteConfig } from '@/lib/config/site'
 
@@ -10,6 +10,7 @@ const navItems = [
   { href: '/my-documents', label: 'My Documents', icon: FolderOpen },
   { href: '/my-compliance', label: 'Compliance', icon: Calendar },
   { href: '/upload', label: 'Upload File', icon: Upload },
+  { href: '/my-company/ra-calculator', label: 'RA Calculator', icon: Calculator },
 ]
 
 export default function ClientNav({ tenantName = 'Compliance Hub', primaryColor = '#1e3a5f', userName }: { tenantName?: string; primaryColor?: string; userName?: string }) {

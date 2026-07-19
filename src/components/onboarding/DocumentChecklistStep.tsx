@@ -71,8 +71,8 @@ export default function DocumentChecklistStep({ taxCaseId, documents, tier }: {
                     </div>
                   </div>
                   <div className="shrink-0 flex items-center gap-2">
-                    {unlocked && doc.status === 'outstanding' && taxCaseId && (
-                      <ClientUploadDoc docId={doc.id} taxCaseId={taxCaseId} />
+                    {unlocked && taxCaseId && (doc.status === 'outstanding' || doc.status === 'uploaded') && (
+                      <ClientUploadDoc docId={doc.id} taxCaseId={taxCaseId} status={doc.status} />
                     )}
                     {unlocked && doc.file_path && (
                       <DocumentDownload filePath={doc.file_path} fileName={doc.file_name ?? doc.label} />

@@ -212,9 +212,7 @@ export default async function ClientDashboardPage() {
                   </div>
                 </div>
                 <div className="shrink-0 flex items-center gap-2">
-                  {doc.status === 'outstanding' && (
-                    <ClientUploadDoc docId={doc.id} taxCaseId={latestCase?.id} />
-                  )}
+                  <ClientUploadDoc docId={doc.id} taxCaseId={latestCase?.id} status={doc.status} />
                   {doc.file_path && (
                     <DocumentDownload filePath={doc.file_path} fileName={doc.file_name ?? doc.label} />
                   )}
