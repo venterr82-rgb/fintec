@@ -56,4 +56,18 @@ export const siteConfig = {
     desc: 'SARS audit, verification, or dispute assistance. Scope and price depend on the case.',
     subject: 'SARS Verification Assistance',
   },
+
+  complexProfileTier: {
+    name: 'Complex Profile',
+    subtitle: 'Multiple employers, rental portfolio, business income, partnerships, or Airbnb',
+    features: [
+      'Everything in Premium',
+      'Custom fee based on complexity',
+      'Direct engagement with Reghardt',
+      'Priority turnaround',
+    ],
+    price: 'Request a quote',
+    buttonLabel: 'Get a quote →',
+    subject: 'Custom tax engagement enquiry',
+  },
 } as const

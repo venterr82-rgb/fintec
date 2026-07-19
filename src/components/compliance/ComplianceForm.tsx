@@ -6,11 +6,11 @@ import { Loader2 } from 'lucide-react'
 
 const TYPES = ['VAT','PAYE','UIF','SDL','Provisional Tax','Income Tax (ITR14)','CIPC Annual Return','Workmen Compensation']
 
-export default function ComplianceForm({ companies, item }: { companies: any[]; item?: any }) {
+export default function ComplianceForm({ companies, item, defaultCompanyId }: { companies: any[]; item?: any; defaultCompanyId?: string }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [form, setForm] = useState({
-    company_id: item?.company_id ?? '',
+    company_id: item?.company_id ?? defaultCompanyId ?? '',
     type: item?.type ?? '',
     period: item?.period ?? '',
     due_date: item?.due_date ?? '',
@@ -28,7 +28,8 @@ export default function ComplianceForm({ companies, item }: { companies: any[]; 
     const payload = { ...form, tenant_id: userData?.tenant_id, amount_due: form.amount_due ? Number(form.amount_due) : null }
     if (item?.id) await supabase.from('compliance_items').update(payload).eq('id', item.id)
     else await supabase.from('compliance_items').insert(payload)
-    router.push('/compliance'); router.refresh()
+    router.push(defaultCompanyId ? `/companies/${defaultCompanyId}/compliance` : '/compliance')
+    router.refresh()
   }
 
   return (

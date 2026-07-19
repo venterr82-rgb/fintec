@@ -90,19 +90,39 @@ export default function TaxCaseForm({ people, taxCase }: { people: any[]; taxCas
     has_pension: taxCase?.has_pension ?? false,
     status: taxCase?.status ?? 'awaiting_docs',
     accountant_note: taxCase?.accountant_note ?? '',
+    employers: (taxCase?.employers as string[] | undefined) ?? [],
     rental_properties: (taxCase?.rental_properties as string[] | undefined) ?? [],
     sole_prop_businesses: (taxCase?.sole_prop_businesses as string[] | undefined) ?? [],
     airbnb_properties: (taxCase?.airbnb_properties as string[] | undefined) ?? [],
     partnership_names: (taxCase?.partnership_names as string[] | undefined) ?? [],
+    accountant_provided_types: (taxCase?.accountant_provided_types as string[] | undefined) ?? [],
   })
   const set = (k: string) => (e: React.ChangeEvent<any>) => setForm(f => ({ ...f, [k]: e.target.value }))
   const tog = (k: string) => (v: boolean) => setForm(f => ({ ...f, [k]: v }))
+
+  function toggleAccountantProvided(documentType: string, checked: boolean) {
+    setForm(f => ({
+      ...f,
+      accountant_provided_types: checked
+        ? [...f.accountant_provided_types, documentType]
+        : f.accountant_provided_types.filter(t => t !== documentType),
+    }))
+  }
+
+  const applicableClientDocTypes = [
+    { type: 'ITA34', label: 'ITA34 (previous NOA)', applies: true },
+    { type: 'IRP5', label: 'IRP5 / IT3(a)', applies: form.has_employment },
+    { type: 'Medical Aid Certificate', label: 'Medical Aid Certificate', applies: form.has_medical },
+    { type: 'RA Certificate', label: 'RA Certificate', applies: form.has_ra },
+    { type: 'Interest Certificate', label: 'Interest Certificate', applies: form.has_investments },
+  ].filter(d => d.applies)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault(); setLoading(true); setError('')
     // Drop blank entries so an empty "Add" click doesn't create a nameless slot.
     const payload = {
       ...form,
+      employers: form.employers.map(n => n.trim()).filter(Boolean),
       rental_properties: form.rental_properties.map(n => n.trim()).filter(Boolean),
       sole_prop_businesses: form.sole_prop_businesses.map(n => n.trim()).filter(Boolean),
       airbnb_properties: form.airbnb_properties.map(n => n.trim()).filter(Boolean),
@@ -161,6 +181,11 @@ export default function TaxCaseForm({ people, taxCase }: { people: any[]; taxCas
         <p className="text-xs text-slate-500 mb-5">Select all income types that apply — this auto-generates the required document checklist.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           <Toggle label="Employment income" hint="IRP5 / IT3(a) from employer" checked={form.has_employment} onChange={tog('has_employment')} />
+          {form.has_employment && (
+            <NameListEditor label="Employers" itemLabel="Employer"
+              names={form.employers}
+              onChange={names => setForm(f => ({ ...f, employers: names }))} />
+          )}
 
           <Toggle label="Rental income" hint="Residential or commercial property" checked={form.has_rental} onChange={tog('has_rental')} />
           {form.has_rental && (
@@ -196,6 +221,23 @@ export default function TaxCaseForm({ people, taxCase }: { people: any[]; taxCas
           <Toggle label="Pension / provident fund" hint="Employer pension or provident" checked={form.has_pension} onChange={tog('has_pension')} />
         </div>
       </div>
+
+      {applicableClientDocTypes.length > 0 && (
+        <div className="card p-6">
+          <h3 className="section-title mb-1">Accountant Will Provide</h3>
+          <p className="text-xs text-slate-500 mb-4">
+            Tick any document types the practice already obtains directly (e.g. SARS eFiling) instead of
+            waiting on the client. These are hidden from the client's checklist entirely.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {applicableClientDocTypes.map(({ type, label }) => (
+              <Toggle key={type} label={label}
+                checked={form.accountant_provided_types.includes(type)}
+                onChange={v => toggleAccountantProvided(type, v)} />
+            ))}
+          </div>
+        </div>
+      )}
 
       <div className="card p-6">
         <h3 className="section-title mb-3">Note to Client</h3>

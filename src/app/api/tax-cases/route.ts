@@ -19,7 +19,10 @@ export async function POST(request: NextRequest) {
   const supabase = await getSupabase()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { data: userData } = await supabase.from('users').select('tenant_id').eq('id', session.user.id).single()
+  const { data: userData } = await supabase.from('users').select('tenant_id, role').eq('id', session.user.id).single()
+  if (!userData || !['admin', 'staff'].includes(userData.role)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
   const body = await request.json()
 
   const { data, error } = await supabase.from('tax_cases')
@@ -40,6 +43,10 @@ export async function PUT(request: NextRequest) {
   const supabase = await getSupabase()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { data: userData } = await supabase.from('users').select('role').eq('id', session.user.id).single()
+  if (!userData || !['admin', 'staff'].includes(userData.role)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
   const { id, ...body } = await request.json()
 
   // Convert empty strings to null for numeric fields
@@ -50,5 +57,14 @@ export async function PUT(request: NextRequest) {
 
   const { data, error } = await supabase.from('tax_cases').update(cleaned).eq('id', id).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
+
+  // Re-sync the document checklist against the (possibly changed) income
+  // profile / entity name lists. generate_tax_documents is idempotent —
+  // safe to call on every edit, not just creation.
+  const { error: rpcError } = await supabase.rpc('generate_tax_documents', { p_case_id: id })
+  if (rpcError) {
+    console.error('generate_tax_documents RPC failed:', rpcError)
+  }
+
   return NextResponse.json({ data })
 }

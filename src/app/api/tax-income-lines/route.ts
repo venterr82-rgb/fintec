@@ -15,16 +15,23 @@ async function getSupabase() {
   )
 }
 
+async function requireStaff(supabase: Awaited<ReturnType<typeof getSupabase>>, userId: string) {
+  const { data: userData } = await supabase.from('users').select('tenant_id, role').eq('id', userId).single()
+  if (!userData || !['admin', 'staff'].includes(userData.role)) return null
+  return userData
+}
+
 export async function POST(request: NextRequest) {
   const supabase = await getSupabase()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { data: userData } = await supabase.from('users').select('tenant_id').eq('id', session.user.id).single()
+  const userData = await requireStaff(supabase, session.user.id)
+  if (!userData) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
   const body = await request.json()
 
   const { data, error } = await supabase.from('tax_income_lines')
-    .insert({ ...body, tenant_id: userData?.tenant_id })
+    .insert({ ...body, tenant_id: userData.tenant_id })
     .select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
 
@@ -35,6 +42,7 @@ export async function PUT(request: NextRequest) {
   const supabase = await getSupabase()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await requireStaff(supabase, session.user.id))) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
   const { id, ...body } = await request.json()
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })
@@ -49,6 +57,7 @@ export async function DELETE(request: NextRequest) {
   const supabase = await getSupabase()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  if (!(await requireStaff(supabase, session.user.id))) return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
 
   const id = request.nextUrl.searchParams.get('id')
   if (!id) return NextResponse.json({ error: 'Missing id' }, { status: 400 })

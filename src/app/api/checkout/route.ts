@@ -5,6 +5,7 @@
 
 import { NextResponse, type NextRequest } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { siteConfig } from '@/lib/config/site'
 
 const adminClient = () => createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,6 +18,15 @@ export async function POST(request: NextRequest) {
 
   if (!email?.trim() || !amount || amount <= 0) {
     return NextResponse.json({ error: 'Email and amount are required.' }, { status: 400 })
+  }
+
+  // Never trust a client-supplied amount for a known tier — recompute it
+  // server-side from siteConfig so a forged request can't buy a paid tier
+  // for an arbitrary (e.g. R1) amount. Unrecognized tierName (or none) is
+  // rejected outright rather than allowed through at whatever amount was sent.
+  const matchedTier = siteConfig.pricingTiers.find(t => t.name === tierName)
+  if (!matchedTier || matchedTier.amount !== Math.round(amount)) {
+    return NextResponse.json({ error: 'Invalid tier or amount.' }, { status: 400 })
   }
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL!

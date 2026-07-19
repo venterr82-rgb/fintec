@@ -142,7 +142,12 @@ export default async function TaxCaseDetailPage({ params }: { params: { id: stri
           {/* RA planning */}
           {taxCase.taxable_income && taxCase.has_ra && (
             <div className="card p-5">
-              <h3 className="section-title mb-3">RA Planning</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="section-title">RA Planning</h3>
+                <Link href={`/tax/${params.id}/ra-calculator`} className="text-xs text-navy-600 hover:text-navy-800 font-medium">
+                  Open calculator →
+                </Link>
+              </div>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Max deductible (27.5%)</span>

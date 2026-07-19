@@ -11,7 +11,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
   return <div><label className="label">{label}</label>{children}</div>
 }
 
-export default function CompanyForm({ company, onSave }: { company?: any; onSave?: () => void }) {
+export default function CompanyForm({ company, redirectTo }: { company?: any; redirectTo?: string }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -45,7 +45,7 @@ export default function CompanyForm({ company, onSave }: { company?: any; onSave
     })
     const json = await res.json()
     if (!res.ok) { setError(json.error ?? 'Failed to save company'); setLoading(false); return }
-    if (onSave) onSave(); else router.push('/companies')
+    router.push(redirectTo ?? '/companies')
     router.refresh()
   }
 

@@ -46,7 +46,8 @@ export default function DocumentUploader({ companies, defaultCompanyId }: { comp
       uploaded_by: session!.user.id, visibility: form.visibility,
       issue_date: form.issue_date || null, tax_year: form.tax_year || null,
     })
-    router.push('/documents'); router.refresh()
+    router.push(defaultCompanyId ? `/companies/${form.company_id}/documents` : '/documents')
+    router.refresh()
   }
 
   return (

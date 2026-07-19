@@ -21,9 +21,12 @@ export async function POST(request: NextRequest) {
   const supabase = await getSupabase()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  const { data: userData } = await supabase.from('users').select('tenant_id').eq('id', session.user.id).single()
+  const { data: userData } = await supabase.from('users').select('tenant_id, role').eq('id', session.user.id).single()
+  if (!userData || !['admin', 'staff'].includes(userData.role)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
   const body = await request.json()
-  const { data, error } = await supabase.from('companies').insert({ ...body, tenant_id: userData?.tenant_id }).select().single()
+  const { data, error } = await supabase.from('companies').insert({ ...body, tenant_id: userData.tenant_id }).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })
   return NextResponse.json({ data })
 }
@@ -32,6 +35,10 @@ export async function PUT(request: NextRequest) {
   const supabase = await getSupabase()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { data: userData } = await supabase.from('users').select('role').eq('id', session.user.id).single()
+  if (!userData || !['admin', 'staff'].includes(userData.role)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
   const { id, ...body } = await request.json()
   const { data, error } = await supabase.from('companies').update(body).eq('id', id).select().single()
   if (error) return NextResponse.json({ error: error.message }, { status: 400 })

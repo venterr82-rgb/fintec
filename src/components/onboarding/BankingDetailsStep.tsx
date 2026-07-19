@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, AlertTriangle } from 'lucide-react'
+import { siteConfig } from '@/lib/config/site'
 
 const BANKS = [
   { name: 'ABSA', branchCode: '632005' },
@@ -82,7 +83,7 @@ export default function BankingDetailsStep() {
           <p className="text-sm text-slate-700">
             Your banking details are used by SARS to pay your refund directly into your account.
             Please ensure these details are correct and current. If SARS has old details on file,
-            your refund will be delayed. This is your responsibility to maintain. Fintec Group
+            your refund will be delayed. This is your responsibility to maintain. {siteConfig.companyName}
             cannot be held liable for refunds paid to incorrect accounts.
           </p>
         </div>

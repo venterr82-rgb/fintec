@@ -62,6 +62,7 @@ export async function POST(request: NextRequest) {
   const { error: updateErr } = await admin.from('tax_documents').update({
     file_path: filePath, file_name: file.name, file_size: file.size,
     status: 'uploaded', uploaded_by: session.user.id, uploaded_at: new Date().toISOString(),
+    uploaded_by_role: isStaff ? 'accountant' : 'client',
   }).eq('id', docId)
   if (updateErr) return NextResponse.json({ error: updateErr.message }, { status: 400 })
 

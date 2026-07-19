@@ -15,6 +15,10 @@ export async function POST(request: NextRequest) {
   )
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const { data: userData } = await supabase.from('users').select('role').eq('id', session.user.id).single()
+  if (!userData || !['admin', 'staff'].includes(userData.role)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+  }
   const { docId, status } = await request.json()
   await supabase.from('tax_documents').update({
     status,

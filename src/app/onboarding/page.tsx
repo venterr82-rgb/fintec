@@ -34,7 +34,7 @@ export default async function OnboardingPage() {
       const { data: docs } = await supabase.from('tax_documents').select('*').eq('tax_case_id', taxCase.id).order('status')
       // Accountant-managed slots (per-property rental/business/Airbnb/
       // partnership documents) are uploaded by the accountant directly.
-      documents = (docs ?? []).filter(d => d.uploaded_by_role !== 'accountant')
+      documents = (docs ?? []).filter(d => d.uploaded_by_role === 'client')
     }
   }
 

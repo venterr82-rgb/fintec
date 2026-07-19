@@ -45,5 +45,5 @@ export const TIER_LABELS: Record<string, string> = {
   basic: 'Basic',
   standard: 'Standard',
   premium: 'Premium',
-  custom: 'Custom',
+  custom: 'Custom Engagement',
 }

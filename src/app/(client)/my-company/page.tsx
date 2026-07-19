@@ -1,9 +1,11 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server'
+import Link from 'next/link'
 import { CheckCircle, Clock, AlertCircle, MessageSquare } from 'lucide-react'
 import DocumentDownload from '@/components/documents/DocumentDownload'
 import ClientUploadDoc from '@/components/tax/ClientUploadDoc'
 import IncomeTaxHistoryChart from '@/components/tax/IncomeTaxHistoryChart'
 import { siteConfig } from '@/lib/config/site'
+import { TIER_LABELS } from '@/lib/tax/tierDocumentAccess'
 
 const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> = {
   awaiting_docs:     { label: 'Awaiting your documents', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' },
@@ -54,6 +56,10 @@ export default async function ClientDashboardPage() {
   if (!session) return null
 
   const { data: userData } = await supabase.from('users').select('person_id, full_name').eq('id', session.user.id).single()
+  const { data: personRecord } = userData?.person_id
+    ? await supabase.from('people').select('tier, engagement_description').eq('id', userData.person_id).single()
+    : { data: null }
+  const isCustomTier = (personRecord?.tier ?? '').toLowerCase() === 'custom'
   if (!userData?.person_id) {
     return (
       <div className="max-w-lg">
@@ -85,7 +91,7 @@ export default async function ClientDashboardPage() {
   // Accountant-managed slots (per-property rental/business/Airbnb/partnership
   // documents) are uploaded by the accountant directly, not the client —
   // hide them from the client-facing checklist entirely.
-  const clientDocuments = (documents ?? []).filter(d => d.uploaded_by_role !== 'accountant')
+  const clientDocuments = (documents ?? []).filter(d => d.uploaded_by_role === 'client')
   const outstanding = clientDocuments.filter(d => d.status === 'outstanding')
   const received = clientDocuments.filter(d => ['uploaded','approved'].includes(d.status))
   const s = latestCase ? (STATUS_MAP[latestCase.status] ?? STATUS_MAP.awaiting_docs) : null
@@ -115,11 +121,27 @@ export default async function ClientDashboardPage() {
     <div className="max-w-4xl space-y-5">
       {/* Welcome + status */}
       <div>
-        <h2 className="text-2xl font-bold text-slate-800">Welcome, {userData.full_name?.split(' ')[0] ?? 'there'}</h2>
+        <div className="flex items-center gap-2">
+          <h2 className="text-2xl font-bold text-slate-800">Welcome, {userData.full_name?.split(' ')[0] ?? 'there'}</h2>
+          {isCustomTier && (
+            <span className="inline-block text-xs font-medium px-2 py-0.5 rounded-full bg-purple-100 text-purple-700">
+              {TIER_LABELS.custom}
+            </span>
+          )}
+        </div>
         {latestCase && (
           <p className="text-sm text-slate-500 mt-0.5">Tax Year {latestCase.tax_year} · {latestCase.period_label}</p>
         )}
       </div>
+
+      {isCustomTier && (
+        <div className="border border-purple-200 bg-purple-50 rounded-xl px-5 py-4">
+          <p className="text-sm font-semibold text-purple-800">Custom engagement</p>
+          <p className="text-sm text-purple-700 mt-1">
+            {personRecord?.engagement_description || `Your engagement is managed directly with ${siteConfig.companyName}. Reach out any time with questions.`}
+          </p>
+        </div>
+      )}
 
       {latestCase && s && (
         <div className={`border rounded-xl px-5 py-4 ${s.bg}`}>
@@ -369,7 +391,12 @@ export default async function ClientDashboardPage() {
       {/* RA planning */}
       {latestCase?.taxable_income && latestCase.has_ra && (
         <div className="card p-5">
-          <h3 className="section-title mb-3">RA Planning</h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="section-title">RA Planning</h3>
+            <Link href="/my-company/ra-calculator" className="text-xs text-navy-600 hover:text-navy-800 font-medium">
+              Open calculator →
+            </Link>
+          </div>
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-slate-500">Max deductible (27.5%)</span>
