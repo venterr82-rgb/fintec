@@ -17,6 +17,37 @@ const STATUS_MAP: Record<string, { label: string; color: string; bg: string }> =
 
 function n(v: any) { return v === null || v === undefined ? 0 : Number(v) }
 
+const BADGE_STYLES: Record<string, string> = {
+  emerald: 'bg-emerald-100 text-emerald-700',
+  amber: 'bg-amber-100 text-amber-700',
+  blue: 'bg-blue-100 text-blue-700',
+  red: 'bg-red-100 text-red-700',
+  purple: 'bg-purple-100 text-purple-700',
+  rose: 'bg-rose-100 text-rose-700',
+}
+
+function Badge({ color, children }: { color: string; children: React.ReactNode }) {
+  return <span className={`inline-block text-[10px] font-semibold uppercase tracking-wide px-1.5 py-0.5 rounded ${BADGE_STYLES[color]}`}>{children}</span>
+}
+
+function Caption({ children }: { children: React.ReactNode }) {
+  return <p className="text-xs text-slate-400 italic mt-1">{children}</p>
+}
+
+const DOT_COLORS: Record<string, string> = {
+  emerald: 'bg-emerald-400',
+  blue: 'bg-blue-500',
+  red: 'bg-red-400',
+  purple: 'bg-purple-500',
+}
+
+function rebateCaption(description: string) {
+  const d = description.toLowerCase()
+  if (d.includes('medical')) return 'SARS rewards you for having medical cover'
+  if (d.includes('ra') || d.includes('retirement') || d.includes('pension')) return 'These are smart decisions that reduced your tax bill'
+  return 'This reduces the tax you owe'
+}
+
 export default async function ClientDashboardPage() {
   const supabase = await createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
@@ -172,7 +203,13 @@ export default async function ClientDashboardPage() {
       {incomeLines && incomeLines.length > 0 && (
         <div className="card">
           <div className="px-5 py-4 border-b border-slate-100">
-            <h3 className="section-title">Income Breakdown</h3>
+            <h3 className="section-title mb-2">Income Breakdown</h3>
+            <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+              <span className="flex items-center gap-1"><span className={`w-2 h-2 rounded-full ${DOT_COLORS.emerald}`} /> Income</span>
+              <span className="flex items-center gap-1"><span className={`w-2 h-2 rounded-full ${DOT_COLORS.blue}`} /> Tax Saving</span>
+              <span className="flex items-center gap-1"><span className={`w-2 h-2 rounded-full ${DOT_COLORS.red}`} /> Tax</span>
+              <span className="flex items-center gap-1"><span className={`w-2 h-2 rounded-full ${DOT_COLORS.purple}`} /> Refund</span>
+            </div>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -187,28 +224,34 @@ export default async function ClientDashboardPage() {
               </thead>
               <tbody>
                 {incomeLines.filter(l => l.line_type === 'income').map((l: any) => (
-                  <tr key={l.id} className="border-t border-slate-50">
-                    <td className="td text-xs text-slate-500">{l.sars_code ?? '—'}</td>
-                    <td className="td">{l.description}</td>
+                  <tr key={l.id} className="bg-emerald-50 border-l-4 border-emerald-400 text-emerald-900">
+                    <td className="td text-xs">{l.sars_code ?? '—'}</td>
+                    <td className="td">{l.description} <Badge color="emerald">Income</Badge></td>
                     <td className="td text-right">{l.calculated ? Number(l.calculated).toLocaleString() : '—'}</td>
-                    <td className="td text-right">{l.exemption_expenses ? `(${Math.abs(Number(l.exemption_expenses)).toLocaleString()})` : '—'}</td>
+                    <td className="td text-right text-amber-700 font-medium">{l.exemption_expenses ? `(${Math.abs(Number(l.exemption_expenses)).toLocaleString()})` : '—'}</td>
                     <td className="td text-right font-medium">{l.taxable_amount ? Number(l.taxable_amount).toLocaleString() : '—'}</td>
                   </tr>
                 ))}
-                <tr className="border-t border-slate-200 font-semibold bg-slate-50">
+                <tr className="bg-slate-100 font-semibold">
                   <td className="td" colSpan={4}>Total Income</td>
                   <td className="td text-right">{incomeTotal.toLocaleString()}</td>
                 </tr>
+                {incomeLines.filter(l => l.line_type === 'income').length > 0 && (
+                  <tr><td colSpan={5} className="px-4"><Caption>This is everything you earned this year</Caption></td></tr>
+                )}
                 {deductionLines.map((l: any) => (
-                  <tr key={l.id} className="border-t border-slate-50">
-                    <td className="td text-xs text-slate-500">{l.sars_code ?? '—'}</td>
-                    <td className="td">{l.description}</td>
+                  <tr key={l.id} className="bg-blue-50 border-l-4 border-blue-500 text-blue-900">
+                    <td className="td text-xs">{l.sars_code ?? '—'}</td>
+                    <td className="td">{l.description} <Badge color="blue">Tax Saving</Badge></td>
                     <td className="td text-right">—</td>
                     <td className="td text-right">{l.exemption_expenses ? `(${Math.abs(Number(l.exemption_expenses)).toLocaleString()})` : '—'}</td>
                     <td className="td text-right font-medium">{l.taxable_amount ? `(${Math.abs(Number(l.taxable_amount)).toLocaleString()})` : '—'}</td>
                   </tr>
                 ))}
-                <tr className="border-t border-slate-200 font-bold">
+                {deductionLines.length > 0 && (
+                  <tr><td colSpan={5} className="px-4"><Caption>These are smart decisions that reduced your tax bill</Caption></td></tr>
+                )}
+                <tr className="bg-slate-100 font-bold">
                   <td className="td" colSpan={4}>TAXABLE INCOME</td>
                   <td className="td text-right">{latestCase?.taxable_income ? Number(latestCase.taxable_income).toLocaleString() : '—'}</td>
                 </tr>
@@ -222,38 +265,73 @@ export default async function ClientDashboardPage() {
       {latestCase?.taxable_income && (
         <div className="card p-5">
           <h3 className="section-title mb-4">Tax Calculation</h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between border-b border-slate-50 pb-2">
-              <span className="text-slate-500">Tax on taxable income</span>
-              <span className="font-medium">R {taxOnTaxableIncome.toLocaleString()}</span>
-            </div>
-            {rebates?.map((r: any) => (
-              <div key={r.id} className="flex justify-between border-b border-slate-50 pb-2">
-                <span className="text-slate-500">{r.description}</span>
-                <span className="font-medium">{n(r.amount) < 0 ? `(R ${Math.abs(n(r.amount)).toLocaleString()})` : '—'}</span>
+          <div className="space-y-3 text-sm">
+            <div>
+              <div className="flex justify-between items-center px-3 py-2 rounded bg-red-50 border-l-4 border-red-400 text-red-900">
+                <span className="flex items-center gap-2">Tax on taxable income <Badge color="red">Tax</Badge></span>
+                <span className="font-medium">R {taxOnTaxableIncome.toLocaleString()}</span>
               </div>
-            ))}
-            <div className="flex justify-between border-b border-slate-50 pb-2 font-semibold">
+              <Caption>This is what SARS calculates you owe</Caption>
+            </div>
+
+            {rebates && rebates.length > 0 && (
+              <div>
+                {rebates.map((r: any) => (
+                  <div key={r.id} className="flex justify-between items-center px-3 py-2 mb-1 rounded bg-blue-50 border-l-4 border-blue-500 text-blue-900">
+                    <span className="flex items-center gap-2">{r.description} <Badge color="blue">Tax Saving</Badge></span>
+                    <span className="font-medium">{n(r.amount) < 0 ? `(R ${Math.abs(n(r.amount)).toLocaleString()})` : '—'}</span>
+                  </div>
+                ))}
+                <Caption>{rebateCaption(rebates[0]?.description ?? '')}</Caption>
+              </div>
+            )}
+
+            <div className="flex justify-between px-3 py-2 rounded bg-slate-100 font-semibold">
               <span>Tax Payable</span>
               <span>R {Number(latestCase.tax_liability ?? 0).toLocaleString()}</span>
             </div>
+
+            {latestCase.paye_credits ? (
+              <div>
+                <div className="flex justify-between items-center px-3 py-2 rounded bg-red-50 border-l-4 border-red-400 text-red-900">
+                  <span className="flex items-center gap-2">PAYE deducted <Badge color="red">Tax</Badge></span>
+                  <span className="font-medium">(R {Number(latestCase.paye_credits).toLocaleString()})</span>
+                </div>
+                <Caption>Your employer already paid this for you</Caption>
+              </div>
+            ) : null}
+
             {latestCase.prov_tax_p1 && (
-              <div className="flex justify-between border-b border-slate-50 pb-2">
+              <div className="flex justify-between px-3 py-2">
                 <span className="text-slate-500">Provisional tax P1</span>
                 <span className="font-medium">(R {Number(latestCase.prov_tax_p1).toLocaleString()})</span>
               </div>
             )}
             {latestCase.prov_tax_p2 && (
-              <div className="flex justify-between border-b border-slate-50 pb-2">
+              <div className="flex justify-between px-3 py-2">
                 <span className="text-slate-500">Provisional tax P2</span>
                 <span className="font-medium">(R {Number(latestCase.prov_tax_p2).toLocaleString()})</span>
               </div>
             )}
+
             {latestCase.result_amount !== null && (
-              <div className={`flex justify-between pt-2 font-bold text-base ${Number(latestCase.result_amount) >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
-                <span>{Number(latestCase.result_amount) >= 0 ? '✓ Refund due to you' : '⚠ Amount owing to SARS'}</span>
-                <span>R {Math.abs(Number(latestCase.result_amount)).toLocaleString()}</span>
-              </div>
+              Number(latestCase.result_amount) >= 0 ? (
+                <div>
+                  <div className="flex justify-between items-center px-3 py-3 rounded bg-purple-50 border-l-4 border-purple-500 text-purple-900 font-bold text-base">
+                    <span className="flex items-center gap-2">✓ Refund due to you <Badge color="purple">Refund</Badge></span>
+                    <span>R {Math.abs(Number(latestCase.result_amount)).toLocaleString()}</span>
+                  </div>
+                  <Caption>SARS owes you this — it will be paid into your bank account</Caption>
+                </div>
+              ) : (
+                <div>
+                  <div className="flex justify-between items-center px-3 py-3 rounded bg-rose-50 border-l-4 border-rose-500 text-rose-900 font-bold text-base">
+                    <span className="flex items-center gap-2">⚠ Amount owing to SARS <Badge color="rose">Owing</Badge></span>
+                    <span>R {Math.abs(Number(latestCase.result_amount)).toLocaleString()}</span>
+                  </div>
+                  <Caption>You need to pay this to SARS by the deadline</Caption>
+                </div>
+              )
             )}
           </div>
         </div>
