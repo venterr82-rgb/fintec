@@ -86,7 +86,7 @@ export async function POST(request: NextRequest) {
     email: email.toLowerCase().trim(),
     phone: phone?.trim() || null,
     has_portal_access: true,
-    tier: payment.tier_name ?? null,
+    tier: payment.tier_name?.toLowerCase() ?? 'basic',
   }).select().single()
 
   // Link the person to the user

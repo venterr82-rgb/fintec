@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Users, Building2, FileText, ArrowLeft } from 'lucide-react'
+import TierSelector from '@/components/people/TierSelector'
 
 export default async function PersonDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createServerSupabaseClient()
@@ -97,8 +98,17 @@ export default async function PersonDetailPage({ params }: { params: { id: strin
           </div>
         </div>
 
-        {/* Right: tax cases */}
+        {/* Right: tier + tax cases */}
         <div className="space-y-4">
+          <div className="card p-4">
+            <h3 className="text-sm font-semibold text-slate-700 mb-3">Billing Tier</h3>
+            <TierSelector
+              personId={person.id}
+              initialTier={person.tier}
+              initialEngagementDescription={person.engagement_description}
+            />
+          </div>
+
           <div className="card p-4">
             <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
               <FileText className="w-4 h-4 text-slate-400" /> Tax Cases

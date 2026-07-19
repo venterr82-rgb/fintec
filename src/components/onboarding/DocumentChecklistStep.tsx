@@ -4,7 +4,7 @@ import { useRouter } from 'next/navigation'
 import { Clock, CheckCircle, XCircle, Lock, Loader2 } from 'lucide-react'
 import ClientUploadDoc from '@/components/tax/ClientUploadDoc'
 import DocumentDownload from '@/components/documents/DocumentDownload'
-import { isDocumentTypeUnlocked, nextTierFor } from '@/lib/tax/tierDocumentAccess'
+import { isDocumentTypeUnlocked, nextTierFor, TIER_LABELS } from '@/lib/tax/tierDocumentAccess'
 import { siteConfig } from '@/lib/config/site'
 
 export default function DocumentChecklistStep({ taxCaseId, documents, tier }: {
@@ -16,8 +16,10 @@ export default function DocumentChecklistStep({ taxCaseId, documents, tier }: {
   const [upgrading, setUpgrading] = useState(false)
   const [finishing, setFinishing] = useState(false)
   const next = nextTierFor(tier)
-  const nextTierConfig = siteConfig.pricingTiers.find(t => t.name === next)
-  const currentTierConfig = siteConfig.pricingTiers.find(t => t.name === tier)
+  // siteConfig.pricingTiers names are capitalized ('Standard') for display;
+  // people.tier/next are lowercase ('standard') — compare case-insensitively.
+  const nextTierConfig = siteConfig.pricingTiers.find(t => t.name.toLowerCase() === next)
+  const currentTierConfig = siteConfig.pricingTiers.find(t => t.name.toLowerCase() === (tier ?? 'basic').toLowerCase())
   const upgradeCost = nextTierConfig ? nextTierConfig.amount - (currentTierConfig?.amount ?? 0) : 0
 
   async function handleUpgrade() {
@@ -48,7 +50,7 @@ export default function DocumentChecklistStep({ taxCaseId, documents, tier }: {
       <div className="card">
         <div className="px-5 py-4 border-b border-slate-100">
           <h3 className="section-title">Document Checklist</h3>
-          <p className="text-xs text-slate-500 mt-0.5">You're on the <strong>{tier ?? 'Basic'}</strong> package.</p>
+          <p className="text-xs text-slate-500 mt-0.5">You're on the <strong>{TIER_LABELS[(tier ?? 'basic').toLowerCase()] ?? 'Basic'}</strong> package.</p>
         </div>
         <div className="divide-y divide-slate-50">
           {documents.filter(d => d.status !== 'not_applicable').map(doc => {
@@ -86,7 +88,7 @@ export default function DocumentChecklistStep({ taxCaseId, documents, tier }: {
                 {!unlocked && next && (
                   <div className="mt-2 ml-7 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
                     <p className="text-xs text-amber-800">
-                      This document type requires the {next} package. You are currently on {tier ?? 'Basic'}.
+                      This document type requires the {TIER_LABELS[next] ?? next} package. You are currently on {TIER_LABELS[(tier ?? 'basic').toLowerCase()] ?? 'Basic'}.
                     </p>
                   </div>
                 )}
@@ -102,7 +104,7 @@ export default function DocumentChecklistStep({ taxCaseId, documents, tier }: {
       {next && (
         <div className="card p-5 bg-navy-50 border border-navy-100">
           <p className="text-sm text-slate-700 mb-3">
-            To unlock {next.toLowerCase()}-tier documents, upgrade for an additional
+            To unlock {TIER_LABELS[next] ?? next}-tier documents, upgrade for an additional
             {' '}R{(upgradeCost / 100).toLocaleString()}.
           </p>
           <button onClick={handleUpgrade} disabled={upgrading} className="btn-primary text-sm">

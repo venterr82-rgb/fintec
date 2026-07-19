@@ -38,10 +38,13 @@ export async function POST(request: NextRequest) {
   const { data: person } = await supabase.from('people').select('tier').eq('id', me.person_id).single()
 
   const { targetTier } = await request.json()
-  const target = siteConfig.pricingTiers.find(t => t.name === targetTier)
+  const targetTierLower = String(targetTier ?? '').toLowerCase()
+  // people.tier is lowercase (basic/standard/premium/custom); siteConfig's
+  // pricingTiers names are capitalized for display — compare case-insensitively.
+  const target = siteConfig.pricingTiers.find(t => t.name.toLowerCase() === targetTierLower)
   if (!target) return NextResponse.json({ error: 'Unknown tier' }, { status: 400 })
 
-  const current = siteConfig.pricingTiers.find(t => t.name === person?.tier)
+  const current = siteConfig.pricingTiers.find(t => t.name.toLowerCase() === (person?.tier ?? 'basic').toLowerCase())
   const currentAmount = current?.amount ?? 0
   const diff = target.amount - currentAmount
   if (diff <= 0) return NextResponse.json({ error: 'That is not an upgrade from your current tier.' }, { status: 400 })
@@ -60,7 +63,7 @@ export async function POST(request: NextRequest) {
       successUrl: `${appUrl}/onboarding?upgraded=true`,
       cancelUrl: `${appUrl}/onboarding`,
       failureUrl: `${appUrl}/onboarding`,
-      metadata: { email: me.email, personId: me.person_id, product: 'tier_upgrade', tier: targetTier },
+      metadata: { email: me.email, personId: me.person_id, product: 'tier_upgrade', tier: targetTierLower },
     }),
   })
 
@@ -78,7 +81,7 @@ export async function POST(request: NextRequest) {
     email: me.email,
     amount: diff,
     product: 'tier_upgrade',
-    tier_name: targetTier,
+    tier_name: targetTierLower,
     person_id: me.person_id,
   })
   if (insertError) {

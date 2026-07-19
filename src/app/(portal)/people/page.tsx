@@ -1,6 +1,23 @@
 import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { Plus, Users } from 'lucide-react'
+import { TIER_LABELS } from '@/lib/tax/tierDocumentAccess'
+
+const TIER_BADGE_CLASSES: Record<string, string> = {
+  basic: 'badge-gray',
+  standard: 'bg-blue-100 text-blue-700',
+  premium: 'bg-amber-100 text-amber-800',
+  custom: 'bg-purple-100 text-purple-700',
+}
+
+function TierBadge({ tier }: { tier: string | null }) {
+  const key = (tier ?? 'basic').toLowerCase()
+  return (
+    <span className={`inline-block text-xs font-medium px-2 py-0.5 rounded-full ${TIER_BADGE_CLASSES[key] ?? TIER_BADGE_CLASSES.basic}`}>
+      {TIER_LABELS[key] ?? 'Basic'}
+    </span>
+  )
+}
 
 export default async function PeoplePage({ searchParams }: { searchParams: { q?: string } }) {
   const supabase = await createServerSupabaseClient()
@@ -26,12 +43,12 @@ export default async function PeoplePage({ searchParams }: { searchParams: { q?:
           <thead className="bg-slate-50 border-b border-slate-200">
             <tr>
               <th className="th">Name</th><th className="th">ID Number</th><th className="th">Tax Number</th>
-              <th className="th">Email</th><th className="th">Companies</th><th className="th">Portal</th><th className="th"></th>
+              <th className="th">Email</th><th className="th">Companies</th><th className="th">Tier</th><th className="th">Portal</th><th className="th"></th>
             </tr>
           </thead>
           <tbody>
             {people?.length === 0 && (
-              <tr><td colSpan={7} className="td text-center py-12 text-slate-400">
+              <tr><td colSpan={8} className="td text-center py-12 text-slate-400">
                 <Users className="w-8 h-8 mx-auto mb-2 opacity-30" />No people found.
               </td></tr>
             )}
@@ -53,6 +70,7 @@ export default async function PeoplePage({ searchParams }: { searchParams: { q?:
                     {p.company_people?.length > 2 && <span className="badge-gray">+{p.company_people.length - 2}</span>}
                   </div>
                 </td>
+                <td className="td"><TierBadge tier={p.tier} /></td>
                 <td className="td"><span className={p.has_portal_access ? 'badge-green' : 'badge-gray'}>{p.has_portal_access ? 'Active' : 'None'}</span></td>
                 <td className="td"><Link href={`/people/${p.id}`} className="text-xs text-navy-600 hover:underline">View →</Link></td>
               </tr>
