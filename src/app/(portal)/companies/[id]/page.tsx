@@ -2,17 +2,23 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Building2, Users, Calendar, FolderOpen, ArrowLeft } from 'lucide-react'
+import EngagementLetterGenerator from '@/components/documents/EngagementLetterGenerator'
+import { joinAddress } from '@/lib/documents/engagementLetterHelpers'
 
 export default async function CompanyDetailPage({ params }: { params: { id: string } }) {
   const supabase = await createServerSupabaseClient()
   const { data: company } = await supabase.from('companies').select('*').eq('id', params.id).single()
   if (!company) notFound()
 
-  const [{ data: directors }, { data: complianceItems }, { data: docs }] = await Promise.all([
-    supabase.from('company_people').select('*, people(first_name, last_name, email, id_number)').eq('company_id', params.id),
+  const [{ data: directors }, { data: complianceItems }, { data: docs }, { data: latestLetter }] = await Promise.all([
+    supabase.from('company_people').select('*, people(id, first_name, last_name, email, id_number)').eq('company_id', params.id),
     supabase.from('compliance_items').select('*').eq('company_id', params.id).order('due_date').limit(5),
     supabase.from('documents').select('*').eq('company_id', params.id).order('created_at', { ascending: false }).limit(5),
+    supabase.from('engagement_letters').select('*').eq('company_id', params.id).eq('letter_type', 'company')
+      .order('created_at', { ascending: false }).limit(1).maybeSingle(),
   ])
+
+  const primaryContact = directors?.[0]?.people
 
   function Row({ label, value }: { label: string; value?: string | number | null }) {
     if (!value) return null
@@ -112,6 +118,29 @@ export default async function CompanyDetailPage({ params }: { params: { id: stri
               ))}
             </div>
           </div>
+
+          {/* Engagement letter */}
+          <EngagementLetterGenerator
+            letterType="company"
+            companyId={company.id}
+            personId={primaryContact?.id}
+            existingLetter={latestLetter}
+            initialFields={{
+              ClientLegalName: company.name ?? '',
+              TradingName: company.trade_name ?? '',
+              RegistrationNumber: company.registration_number ?? '',
+              TaxReferenceNumber: company.tax_number ?? '',
+              VATNumber: company.vat_number ?? '',
+              PAYEReferenceNumber: company.paye_number ?? '',
+              RegisteredAddress: joinAddress([
+                company.registered_address_line1, company.registered_city,
+                company.registered_province, company.registered_postal_code,
+              ]),
+              ContactPerson: primaryContact ? `${primaryContact.first_name} ${primaryContact.last_name}` : '',
+              EmailAddress: primaryContact?.email ?? company.email ?? '',
+              MobileNumber: company.phone ?? '',
+            }}
+          />
 
           {/* Recent compliance */}
           {complianceItems && complianceItems.length > 0 && (

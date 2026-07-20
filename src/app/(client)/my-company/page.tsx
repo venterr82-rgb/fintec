@@ -2,6 +2,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import { CheckCircle, Clock, AlertCircle, MessageSquare } from 'lucide-react'
 import DocumentDownload from '@/components/documents/DocumentDownload'
+import ClientEngagementLetterUpload from '@/components/documents/ClientEngagementLetterUpload'
 import ClientUploadDoc from '@/components/tax/ClientUploadDoc'
 import IncomeTaxHistoryChart from '@/components/tax/IncomeTaxHistoryChart'
 import { siteConfig } from '@/lib/config/site'
@@ -81,6 +82,13 @@ export default async function ClientDashboardPage() {
 
   const latestCase = taxCases?.[0]
 
+  const { data: engagementLetters } = await supabase
+    .from('engagement_letters')
+    .select('*')
+    .eq('person_id', userData.person_id)
+    .order('created_at', { ascending: false })
+  const latestLetter = engagementLetters?.[0]
+
   const [{ data: documents }, { data: history }, { data: incomeLines }, { data: rebates }] = await Promise.all([
     latestCase ? supabase.from('tax_documents').select('*').eq('tax_case_id', latestCase.id).order('status') : Promise.resolve({ data: [] as any[] }),
     supabase.from('tax_income_history').select('*').eq('person_id', userData.person_id).order('tax_year', { ascending: false }).limit(4),
@@ -140,6 +148,27 @@ export default async function ClientDashboardPage() {
           <p className="text-sm text-purple-700 mt-1">
             {personRecord?.engagement_description || `Your engagement is managed directly with ${siteConfig.companyName}. Reach out any time with questions.`}
           </p>
+        </div>
+      )}
+
+      {latestLetter?.status === 'sent' && (
+        <div className="border border-amber-200 bg-amber-50 rounded-xl px-5 py-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <p className="text-sm font-semibold text-amber-800">Your engagement letter is ready to sign</p>
+              <p className="text-xs text-amber-700 mt-0.5">Please review, sign, and upload your engagement letter to continue.</p>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <DocumentDownload filePath={latestLetter.file_path} fileName={latestLetter.file_name ?? 'Engagement Letter.pdf'} />
+              <ClientEngagementLetterUpload letterId={latestLetter.id} />
+            </div>
+          </div>
+        </div>
+      )}
+      {latestLetter?.status === 'signed' && (
+        <div className="border border-emerald-200 bg-emerald-50 rounded-xl px-5 py-4 flex items-center justify-between flex-wrap gap-3">
+          <p className="text-sm font-semibold text-emerald-800">✓ Engagement letter signed and on file</p>
+          <DocumentDownload filePath={latestLetter.file_path} fileName={latestLetter.file_name ?? 'Engagement Letter.pdf'} />
         </div>
       )}
 

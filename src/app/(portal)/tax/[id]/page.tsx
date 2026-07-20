@@ -5,6 +5,9 @@ import { ArrowLeft, CheckCircle, Clock, XCircle } from 'lucide-react'
 import TaxDocumentManager from '@/components/tax/TaxDocumentManager'
 import TaxFiguresForm from '@/components/tax/TaxFiguresForm'
 import TaxIncomeLinesEditor from '@/components/tax/TaxIncomeLinesEditor'
+import EngagementLetterGenerator from '@/components/documents/EngagementLetterGenerator'
+import { siteConfig } from '@/lib/config/site'
+import { joinAddress } from '@/lib/documents/engagementLetterHelpers'
 
 const STATUS_STEPS = [
   { key: 'awaiting_docs', label: 'Awaiting docs' },
@@ -20,11 +23,24 @@ export default async function TaxCaseDetailPage({ params }: { params: { id: stri
 
   const { data: taxCase } = await supabase
     .from('tax_cases')
-    .select('*, people(first_name, last_name, email, id_number, tax_number)')
+    .select(`*, people(first_name, last_name, email, id_number, tax_number, phone, tier,
+      residential_address_line1, residential_city, residential_province, residential_postal_code)`)
     .eq('id', params.id)
     .single()
 
   if (!taxCase) notFound()
+
+  const { data: latestLetter } = await supabase
+    .from('engagement_letters')
+    .select('*')
+    .eq('person_id', taxCase.person_id)
+    .eq('letter_type', 'individual')
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  const clientTier = siteConfig.pricingTiers.find(t => t.name.toLowerCase() === (taxCase.people?.tier ?? 'basic').toLowerCase())
+  const suggestedFee = clientTier ? (clientTier.amount / 100).toFixed(2) : ''
 
   const { data: documents } = await supabase
     .from('tax_documents')
@@ -197,6 +213,27 @@ export default async function TaxCaseDetailPage({ params }: { params: { id: stri
               </table>
             </div>
           )}
+
+          {/* Engagement letter */}
+          <EngagementLetterGenerator
+            letterType="individual"
+            personId={taxCase.person_id}
+            existingLetter={latestLetter}
+            initialFields={{
+              ClientLegalName: `${taxCase.people?.first_name ?? ''} ${taxCase.people?.last_name ?? ''}`.trim(),
+              RegistrationNumber: taxCase.people?.id_number ?? '',
+              TaxReferenceNumber: taxCase.people?.tax_number ?? '',
+              RegisteredAddress: joinAddress([
+                taxCase.people?.residential_address_line1, taxCase.people?.residential_city,
+                taxCase.people?.residential_province, taxCase.people?.residential_postal_code,
+              ]),
+              ContactPerson: `${taxCase.people?.first_name ?? ''} ${taxCase.people?.last_name ?? ''}`.trim(),
+              EmailAddress: taxCase.people?.email ?? '',
+              MobileNumber: taxCase.people?.phone ?? '',
+              FeeCompliance: suggestedFee,
+              FeeTotal: suggestedFee,
+            }}
+          />
 
           {/* Accountant note */}
           {taxCase.accountant_note && (

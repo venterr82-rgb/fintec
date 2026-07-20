@@ -61,10 +61,28 @@ export async function POST(request: NextRequest) {
       .eq('file_path', filePath)
       .maybeSingle()
 
-    if (!taxDoc) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-    if (taxDoc.tenant_id !== me.tenant_id) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-    if (!isStaff && taxDoc.person_id !== me.person_id) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    if (taxDoc) {
+      if (taxDoc.tenant_id !== me.tenant_id) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      if (!isStaff && taxDoc.person_id !== me.person_id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+      }
+    } else {
+      // Fall back to engagement_letters — matches either the generated
+      // letter itself or the client's uploaded signed copy. Two separate
+      // queries rather than .or() since filePath (containing slashes and
+      // arbitrary filename characters) isn't safe to interpolate into a
+      // PostgREST .or() filter string.
+      const [{ data: letterByFile }, { data: letterBySigned }] = await Promise.all([
+        admin.from('engagement_letters').select('tenant_id, person_id').eq('file_path', filePath).maybeSingle(),
+        admin.from('engagement_letters').select('tenant_id, person_id').eq('signed_file_path', filePath).maybeSingle(),
+      ])
+      const letter = letterByFile ?? letterBySigned
+
+      if (!letter) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      if (letter.tenant_id !== me.tenant_id) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+      if (!isStaff && letter.person_id !== me.person_id) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+      }
     }
   }
 
